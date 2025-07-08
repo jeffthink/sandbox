@@ -86,6 +86,36 @@
             margin: 0 auto;
         }
         
+        .nav-header {
+            background: #f8fafc;
+            padding: 1rem 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .nav-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .nav-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            color: #3b82f6;
+        }
+        
+        .nav-link::before {
+            content: "← ";
+            margin-right: 4px;
+        }
+        
         .decision-box {
             stroke: #374151;
             stroke-width: 1;
@@ -132,6 +162,12 @@
     </style>
 </head>
 <body>
+    <div class="nav-header">
+        <div class="nav-content">
+            <a href="../index.html" class="nav-link">Back to All Experiments</a>
+        </div>
+    </div>
+    
     <div class="widget-container">
         <h1 style="text-align: center; color: #1f2937; margin-bottom: 30px;">
             Family Decision Making Complexity

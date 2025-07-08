@@ -1,0 +1,17 @@
+{
+  "name": "html-scratch",
+  "version": "1.0.0",
+  "main": "index.html",
+  "scripts": {
+    "serve": "live-server --port=3000 --open=index.html",
+    "start": "npm run serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["html", "experiments", "scratch", "visualizations"],
+  "author": "",
+  "license": "ISC",
+  "description": "A scratch pad repository for HTML experiments and interactive visualizations",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

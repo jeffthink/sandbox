@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Complexity Visualizations</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        
+        .widget-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .slider-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 16px;
+        }
+        
+        #familySlider {
+            width: 300px;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        #familySlider::-webkit-slider-thumb {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        #familySlider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .family-size {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        svg {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <h1 style="text-align: center; color: #1f2937; margin-bottom: 30px;">
+            Family Complexity Interactive Calculator
+        </h1>
+        
+        <div class="slider-container">
+            <label class="slider-label">Family Size:</label>
+            <input type="range" min="1" max="8" value="4" id="familySlider">
+            <span class="family-size" id="familySize">4</span>
+        </div>
+        
+        <div class="section-title">Linear Growth: Airline Costs</div>
+        <div id="linearVisualization"></div>
+    </div>
+
+    <script>
+        // Global variables
+        let familySize = 4;
+        
+        // Configuration constants
+        const CONFIG = {
+            width: 400,
+            height: 200,
+            ticket: {
+                width: 100,
+                height: 40,
+                spacing: 8,
+                startX: 50,
+                startY: 50
+            },
+            cost: {
+                perPerson: 250,
+                textOffsetX: 200,
+                textBaselineOffset: 8
+            },
+            transitions: {
+                duration: 500,
+                textDuration: 400,
+                enterDelay: 100
+            }
+        };
+        
+        // Emoji mapping
+        const EMOJI_MAP = {
+            1: "😊", 2: "😄", 3: "😐", 4: "😰",
+            5: "😟", 6: "😢", 7: "😭", 8: "🫠"
+        };
+        
+        let svg;
+        
+        // Initialize visualization
+        function init() {
+            setupVisualization();
+            updateLinearVisualization();
+        }
+        
+        // One-time setup
+        function setupVisualization() {
+            // Clear any existing SVG first
+            d3.select("#linearVisualization").select("svg").remove();
+            
+            svg = d3.select("#linearVisualization")
+                .append("svg")
+                .attr("width", CONFIG.width)
+                .attr("height", CONFIG.height);
+            
+            // Create defs for filters
+            const defs = svg.append("defs");
+            const filter = defs.append("filter")
+                .attr("id", "dropshadow")
+                .attr("x", "-20%")
+                .attr("y", "-20%")
+                .attr("width", "140%")
+                .attr("height", "140%");
+            
+            filter.append("feDropShadow")
+                .attr("dx", "1")
+                .attr("dy", "2")
+                .attr("stdDeviation", "2")
+                .attr("flood-color", "rgba(0,0,0,0.1)");
+        }
+        
+        // Create ticket structure
+        function createTicketStructure(ticketEnter) {
+            // Main ticket body
+            ticketEnter.append("rect")
+                .attr("class", "ticket-body")
+                .attr("width", CONFIG.ticket.width)
+                .attr("height", CONFIG.ticket.height)
+                .attr("rx", 8)
+                .style("fill", "white")
+                .style("stroke", "#e5e7eb")
+                .style("stroke-width", "2")
+                .style("filter", "url(#dropshadow)");
+            
+            // Perforations
+            ticketEnter.selectAll(".perforation")
+                .data(d3.range(6))
+                .enter()
+                .append("rect")
+                .attr("class", "perforation")
+                .attr("x", 12)
+                .attr("y", (d, i) => 7 + i * 4.5)
+                .attr("width", 2)
+                .attr("height", 2)
+                .attr("rx", 1)
+                .style("fill", "#9ca3af");
+            
+            // Dashed line
+            ticketEnter.selectAll(".dash")
+                .data(d3.range(8))
+                .enter()
+                .append("rect")
+                .attr("class", "dash")
+                .attr("x", 24)
+                .attr("y", (d, i) => 5 + i * 4)
+                .attr("width", 1)
+                .attr("height", 2)
+                .style("fill", "#d1d5db");
+            
+            // Airplane icon
+            const planeGroup = ticketEnter.append("g")
+                .attr("transform", "translate(75, 12)");
+            
+            planeGroup.append("path")
+                .attr("d", "M2 12L1 3L20 12L1 21L2 12ZM2 12L9 12")
+                .style("fill", "none")
+                .style("stroke", "#374151")
+                .style("stroke-width", "2")
+                .style("stroke-linecap", "round")
+                .style("stroke-linejoin", "round")
+                .attr("transform", "scale(0.7)");
+            
+            // Text lines
+            const textLines = [
+                {x: 30, y: 10, width: 20},
+                {x: 30, y: 14, width: 15},
+                {x: 30, y: 18, width: 25},
+                {x: 30, y: 22, width: 18}
+            ];
+            
+            ticketEnter.selectAll(".text-line")
+                .data(textLines)
+                .enter()
+                .append("rect")
+                .attr("class", "text-line")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("width", d => d.width)
+                .attr("height", 1.5)
+                .style("fill", "#d1d5db");
+        }
+        
+        // Linear Growth Visualization
+        function updateLinearVisualization() {
+            const cost = familySize * CONFIG.cost.perPerson;
+            const ticketData = d3.range(familySize);
+            
+            // Update tickets using D3's enter/update/exit pattern
+            const tickets = svg.selectAll(".ticket-group")
+                .data(ticketData);
+            
+            // EXIT: Remove extra tickets
+            tickets.exit()
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .style("opacity", 0)
+                .remove();
+            
+            // ENTER: Create new tickets
+            const ticketEnter = tickets.enter()
+                .append("g")
+                .attr("class", "ticket-group")
+                .attr("transform", (d, i) => 
+                    `translate(${CONFIG.ticket.startX}, ${CONFIG.ticket.startY + i * CONFIG.ticket.spacing})`)
+                .style("opacity", 1); // Start visible for debugging
+            
+            // Build ticket structure for new tickets
+            createTicketStructure(ticketEnter);
+            
+            // UPDATE: Reposition all tickets (both existing and new)
+            tickets.merge(ticketEnter)
+                .attr("transform", (d, i) => 
+                    `translate(${CONFIG.ticket.startX}, ${CONFIG.ticket.startY + i * CONFIG.ticket.spacing})`);
+            
+            // Update cost display
+            updateCostDisplay(cost);
+        }
+        
+        // Update cost display
+        function updateCostDisplay(cost) {
+            let costGroup = svg.select(".cost-group");
+            
+            // Calculate vertical center position
+            const ticketStackHeight = Math.max(0, familySize - 1) * CONFIG.ticket.spacing + CONFIG.ticket.height;
+            const textY = CONFIG.ticket.startY + ticketStackHeight / 2 + CONFIG.cost.textBaselineOffset;
+            
+            // Create cost group if it doesn't exist
+            if (costGroup.empty()) {
+                costGroup = svg.append("g")
+                    .attr("class", "cost-group")
+                    .attr("transform", `translate(${CONFIG.cost.textOffsetX}, ${textY})`); // Set initial position
+                
+                costGroup.append("text")
+                    .attr("class", "cost-text")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("text-anchor", "start")
+                    .style("font-size", "28px")
+                    .style("font-weight", "bold")
+                    .style("fill", "#10b981")
+                    .text(`$${cost.toLocaleString()} ${EMOJI_MAP[familySize] || "💀"}`);
+            } else {
+                // Update position only if cost group already exists
+                costGroup
+                    .transition()
+                    .duration(CONFIG.transitions.duration)
+                    .attr("transform", `translate(${CONFIG.cost.textOffsetX}, ${textY})`);
+            }
+            
+            // Update text with animation
+            const currentEmoji = EMOJI_MAP[familySize] || "💀";
+            costGroup.select(".cost-text")
+                .transition()
+                .duration(CONFIG.transitions.textDuration)
+                .tween("text", function() {
+                    const currentText = this.textContent.replace(/[$,😊😄😐😰😟😢😭🫠💀]/g, '');
+                    const currentValue = currentText ? +currentText : 0;
+                    const interpolator = d3.interpolateNumber(currentValue, cost);
+                    
+                    return function(t) {
+                        this.textContent = `$${Math.round(interpolator(t)).toLocaleString()} ${currentEmoji}`;
+                    };
+                });
+        }
+        
+        // Event handlers
+        let updateTimeout;
+        document.getElementById('familySlider').addEventListener('input', function(e) {
+            familySize = parseInt(e.target.value);
+            document.getElementById('familySize').textContent = familySize;
+            
+            // Clear any pending update
+            clearTimeout(updateTimeout);
+            
+            // Debounce the visualization update
+            updateTimeout = setTimeout(() => {
+                updateLinearVisualization();
+            }, 50);
+        });
+        
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

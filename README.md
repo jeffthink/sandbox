@@ -29,7 +29,8 @@ html-scratch/
 ├── index.html                    # Main listing page of all experiments
 ├── family-math/
 │   ├── linear-growth.html       # Interactive family complexity calculator
-│   └── quadratic-growth.html    # Family relationships visualization
+│   ├── quadratic-growth.html    # Family relationships visualization
+│   └── exponential-growth.html  # Family decision-making complexity
 └── [future-experiments]/       # Additional experiment folders
 ```
 
@@ -53,6 +54,16 @@ An interactive visualization showing how relationships between family members gr
 - **Features:** Network visualization, smooth animations, dynamic relationship counting
 - **Concept:** Demonstrates the n(n-1)/2 formula through connected family member nodes
 - **Visual Elements:** Family members as circles with emoji faces, connection lines with heart symbols
+
+### Exponential Growth: Decision Making
+**Location:** `family-math/exponential-growth.html`
+
+An interactive visualization demonstrating how family decision-making complexity grows exponentially with each additional family member.
+
+- **Technology:** D3.js v7.8.5
+- **Features:** Dynamic scenario grid, color-coded decisions, animated transitions
+- **Concept:** Shows the 2^n formula through all possible agree/disagree combinations
+- **Visual Elements:** Grid of decision boxes (green for agree, red for disagree) showing every possible scenario
 
 ## Adding New Experiments
 

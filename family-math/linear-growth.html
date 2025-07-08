@@ -325,18 +325,19 @@
         }
         
         // Event handlers
-        let updateTimeout;
-        document.getElementById('familySlider').addEventListener('input', function(e) {
+        const slider = document.getElementById('familySlider');
+        
+        // Update display immediately but debounce visualization updates
+        slider.addEventListener('input', function(e) {
             familySize = parseInt(e.target.value);
             document.getElementById('familySize').textContent = familySize;
-            
-            // Clear any pending update
-            clearTimeout(updateTimeout);
-            
-            // Debounce the visualization update
-            updateTimeout = setTimeout(() => {
-                updateLinearVisualization();
-            }, 50);
+        });
+        
+        // Update visualization only when user stops dragging
+        slider.addEventListener('change', function(e) {
+            familySize = parseInt(e.target.value);
+            document.getElementById('familySize').textContent = familySize;
+            updateLinearVisualization();
         });
         
         // Initialize on load

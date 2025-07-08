@@ -28,7 +28,8 @@ Alternatively, you can open any HTML file directly in your browser without a ser
 html-scratch/
 ├── index.html                    # Main listing page of all experiments
 ├── family-math/
-│   └── linear-growth.html       # Interactive family complexity calculator
+│   ├── linear-growth.html       # Interactive family complexity calculator
+│   └── quadratic-growth.html    # Family relationships visualization
 └── [future-experiments]/       # Additional experiment folders
 ```
 
@@ -42,6 +43,16 @@ An interactive visualization demonstrating linear growth patterns through airlin
 - **Technology:** D3.js v7.8.5
 - **Features:** Interactive slider, animated visualizations, responsive design
 - **Concept:** Shows how costs scale linearly with family size
+
+### Quadratic Growth: Family Relationships
+**Location:** `family-math/quadratic-growth.html`
+
+An interactive visualization showing how relationships between family members grow quadratically as family size increases.
+
+- **Technology:** D3.js v7.8.5
+- **Features:** Network visualization, smooth animations, dynamic relationship counting
+- **Concept:** Demonstrates the n(n-1)/2 formula through connected family member nodes
+- **Visual Elements:** Family members as circles with emoji faces, connection lines with heart symbols
 
 ## Adding New Experiments
 

@@ -30,7 +30,8 @@ html-scratch/
 ├── family-math/
 │   ├── linear-growth.html       # Interactive family complexity calculator
 │   ├── quadratic-growth.html    # Family relationships visualization
-│   └── exponential-growth.html  # Family decision-making complexity
+│   ├── exponential-growth.html  # Family decision-making complexity
+│   └── factorial-growth.html    # Family line ordering complexity
 └── [future-experiments]/       # Additional experiment folders
 ```
 
@@ -64,6 +65,16 @@ An interactive visualization demonstrating how family decision-making complexity
 - **Features:** Dynamic scenario grid, color-coded decisions, animated transitions
 - **Concept:** Shows the 2^n formula through all possible agree/disagree combinations
 - **Visual Elements:** Grid of decision boxes (green for agree, red for disagree) showing every possible scenario
+
+### Factorial Growth: Line Ordering
+**Location:** `family-math/factorial-growth.html`
+
+An interactive visualization showing how line arrangement complexity grows factorially, demonstrating the explosive growth of permutations.
+
+- **Technology:** D3.js v7.8.5
+- **Features:** Colorful person avatars, randomized arrangements, smooth animations
+- **Concept:** Shows the n! formula through all possible ways family members can arrange themselves in a line
+- **Visual Elements:** Rows of colored circles representing different line arrangements with person labels
 
 ## Adding New Experiments
 

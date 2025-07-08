@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factorial Growth: Line Ordering</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        
+        .nav-header {
+            background: #f8fafc;
+            padding: 1rem 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .nav-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .nav-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            color: #3b82f6;
+        }
+        
+        .nav-link::before {
+            content: "← ";
+            margin-right: 4px;
+        }
+        
+        .widget-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .slider-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 16px;
+        }
+        
+        #familySlider {
+            width: 300px;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        #familySlider::-webkit-slider-thumb {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        #familySlider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .family-size {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        svg {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .person-avatar {
+            cursor: pointer;
+        }
+        
+        .person-circle {
+            fill: #3b82f6;
+            stroke: #1d4ed8;
+            stroke-width: 2;
+        }
+        
+        .person-label {
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: white;
+            font-weight: bold;
+        }
+        
+        .arrangement-count {
+            font-size: 28px;
+            font-weight: bold;
+            fill: #dc2626;
+            text-anchor: start;
+        }
+        
+        .formula-text {
+            font-size: 16px;
+            fill: #6b7280;
+            text-anchor: start;
+        }
+        
+        .line-arrangement {
+            opacity: 0.8;
+        }
+        
+        .line-arrangement:hover {
+            opacity: 1;
+        }
+        
+        .arrangement-line {
+            stroke: #d1d5db;
+            stroke-width: 2;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-header">
+        <div class="nav-content">
+            <a href="../index.html" class="nav-link">Back to All Experiments</a>
+        </div>
+    </div>
+    
+    <div class="widget-container">
+        <h1 style="text-align: center; color: #1f2937; margin-bottom: 30px;">
+            Family Line Ordering Complexity
+        </h1>
+        
+        <div class="slider-container">
+            <label class="slider-label">Family Size:</label>
+            <input type="range" min="2" max="6" value="4" id="familySlider">
+            <span class="family-size" id="familySize">4</span>
+        </div>
+        
+        <div class="section-title">Factorial Growth: Line Arrangements</div>
+        <div id="factorialVisualization"></div>
+    </div>
+
+    <script>
+        // Global variables
+        let familySize = 4;
+        
+        // Configuration constants
+        const CONFIG = {
+            width: 700,
+            height: 500,
+            person: {
+                radius: 15,
+                spacing: 45,
+                lineSpacing: 35
+            },
+            layout: {
+                startX: 50,
+                startY: 50,
+                maxDisplayRows: 10
+            },
+            text: {
+                baseOffsetX: 350,
+                offsetY: 80
+            },
+            transitions: {
+                duration: 500,
+                textDuration: 400
+            }
+        };
+        
+        // Person names for variety
+        const PERSON_NAMES = ["1", "2", "3", "4", "5", "6"];
+        const PERSON_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+        
+        // Calculate text position based on family size
+        function getTextOffsetX(familySize) {
+            const visualizationWidth = familySize * CONFIG.person.spacing + 50;
+            return Math.max(CONFIG.text.baseOffsetX, CONFIG.layout.startX + visualizationWidth + 30);
+        }
+        
+        let svg;
+        
+        // Initialize visualization
+        function init() {
+            setupVisualization();
+            updateFactorialVisualization();
+        }
+        
+        // One-time setup
+        function setupVisualization() {
+            // Clear any existing SVG first
+            d3.select("#factorialVisualization").select("svg").remove();
+            
+            svg = d3.select("#factorialVisualization")
+                .append("svg")
+                .attr("width", CONFIG.width)
+                .attr("height", CONFIG.height);
+            
+            // Create layer groups to ensure proper z-order
+            svg.append("g").attr("class", "lines-layer");
+            svg.append("g").attr("class", "arrangements-layer");
+            svg.append("g").attr("class", "text-layer");
+        }
+        
+        // Generate all possible line arrangements (permutations)
+        function generateArrangements(n) {
+            const people = Array.from({length: n}, (_, i) => i);
+            const arrangements = [];
+            
+            // Generate all permutations
+            function permute(arr, start = 0) {
+                if (start >= arr.length) {
+                    arrangements.push([...arr]);
+                    return;
+                }
+                
+                for (let i = start; i < arr.length; i++) {
+                    [arr[start], arr[i]] = [arr[i], arr[start]];
+                    permute(arr, start + 1);
+                    [arr[start], arr[i]] = [arr[i], arr[start]];
+                }
+            }
+            
+            permute(people);
+            
+            // Shuffle arrangements for variety
+            for (let i = arrangements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arrangements[i], arrangements[j]] = [arrangements[j], arrangements[i]];
+            }
+            
+            return arrangements;
+        }
+        
+        // Calculate factorial
+        function factorial(n) {
+            if (n <= 1) return 1;
+            return n * factorial(n - 1);
+        }
+        
+        // Calculate positions for line arrangements
+        function calculateArrangementPositions(arrangements) {
+            const positions = [];
+            const displayRows = Math.min(arrangements.length, CONFIG.layout.maxDisplayRows);
+            
+            arrangements.slice(0, displayRows).forEach((arrangement, rowIndex) => {
+                const rowPositions = [];
+                arrangement.forEach((personIndex, colIndex) => {
+                    const x = CONFIG.layout.startX + colIndex * CONFIG.person.spacing;
+                    const y = CONFIG.layout.startY + rowIndex * CONFIG.person.lineSpacing;
+                    
+                    rowPositions.push({
+                        x: x,
+                        y: y,
+                        personIndex: personIndex,
+                        rowIndex: rowIndex,
+                        colIndex: colIndex
+                    });
+                });
+                positions.push(rowPositions);
+            });
+            
+            return positions;
+        }
+        
+        // Factorial Growth Visualization
+        function updateFactorialVisualization() {
+            const arrangements = generateArrangements(familySize);
+            const arrangementPositions = calculateArrangementPositions(arrangements);
+            const totalArrangements = factorial(familySize);
+            
+            // Flatten positions for D3 data binding
+            const flatPositions = arrangementPositions.flat();
+            
+            // Update connecting lines first (so they appear behind circles)
+            const lineData = [];
+            arrangementPositions.forEach(arrangement => {
+                for (let i = 0; i < arrangement.length - 1; i++) {
+                    lineData.push({
+                        x1: arrangement[i].x,
+                        y1: arrangement[i].y,
+                        x2: arrangement[i + 1].x,
+                        y2: arrangement[i + 1].y,
+                        rowIndex: arrangement[i].rowIndex
+                    });
+                }
+            });
+            
+            const arrangementLines = svg.select(".lines-layer").selectAll(".arrangement-line")
+                .data(lineData);
+            
+            // EXIT: Remove extra lines
+            arrangementLines.exit()
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .style("opacity", 0)
+                .remove();
+            
+            // ENTER: Create new lines
+            arrangementLines.enter()
+                .append("line")
+                .attr("class", "arrangement-line")
+                .attr("x1", d => d.x1)
+                .attr("y1", d => d.y1)
+                .attr("x2", d => d.x2)
+                .attr("y2", d => d.y2)
+                .style("opacity", 0)
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .style("opacity", 0.6);
+            
+            // UPDATE: Update existing lines
+            arrangementLines
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .attr("x1", d => d.x1)
+                .attr("y1", d => d.y1)
+                .attr("x2", d => d.x2)
+                .attr("y2", d => d.y2);
+            
+            // Update person avatars
+            const personAvatars = svg.select(".arrangements-layer").selectAll(".person-avatar")
+                .data(flatPositions);
+            
+            // EXIT: Remove extra avatars
+            personAvatars.exit()
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .style("opacity", 0)
+                .remove();
+            
+            // ENTER: Create new avatars
+            const avatarEnter = personAvatars.enter()
+                .append("g")
+                .attr("class", "person-avatar")
+                .attr("transform", d => `translate(${d.x}, ${d.y})`)
+                .style("opacity", 0);
+            
+            avatarEnter.append("circle")
+                .attr("class", "person-circle")
+                .attr("r", CONFIG.person.radius)
+                .style("fill", d => PERSON_COLORS[d.personIndex % PERSON_COLORS.length])
+                .style("stroke", d => d3.color(PERSON_COLORS[d.personIndex % PERSON_COLORS.length]).darker(0.5));
+            
+            avatarEnter.append("text")
+                .attr("class", "person-label")
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(d => PERSON_NAMES[d.personIndex]);
+            
+            avatarEnter
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .style("opacity", 1);
+            
+            // UPDATE: Update existing avatars
+            personAvatars
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .attr("transform", d => `translate(${d.x}, ${d.y})`);
+            
+            // Update circle colors and labels
+            personAvatars.select(".person-circle")
+                .style("fill", d => PERSON_COLORS[d.personIndex % PERSON_COLORS.length])
+                .style("stroke", d => d3.color(PERSON_COLORS[d.personIndex % PERSON_COLORS.length]).darker(0.5));
+            
+            personAvatars.select(".person-label")
+                .text(d => PERSON_NAMES[d.personIndex]);
+            
+            // Add "...and more..." indicator if there are more arrangements than displayed
+            const hasMoreArrangements = arrangements.length > CONFIG.layout.maxDisplayRows;
+            const moreIndicator = svg.select(".arrangements-layer").selectAll(".more-indicator")
+                .data(hasMoreArrangements ? [1] : []);
+            
+            moreIndicator.exit()
+                .transition()
+                .duration(CONFIG.transitions.duration)
+                .style("opacity", 0)
+                .remove();
+            
+            if (hasMoreArrangements) {
+                const moreEnter = moreIndicator.enter()
+                    .append("text")
+                    .attr("class", "more-indicator")
+                    .attr("x", CONFIG.layout.startX + familySize * CONFIG.person.spacing / 2)
+                    .attr("y", CONFIG.layout.startY + CONFIG.layout.maxDisplayRows * CONFIG.person.lineSpacing + 20)
+                    .style("text-anchor", "middle")
+                    .style("font-size", "14px")
+                    .style("fill", "#9ca3af")
+                    .style("font-style", "italic")
+                    .text(`...and ${arrangements.length - CONFIG.layout.maxDisplayRows} more arrangements`)
+                    .style("opacity", 0);
+                
+                moreEnter
+                    .transition()
+                    .duration(CONFIG.transitions.duration)
+                    .style("opacity", 1);
+                
+                moreIndicator
+                    .transition()
+                    .duration(CONFIG.transitions.duration)
+                    .attr("x", CONFIG.layout.startX + familySize * CONFIG.person.spacing / 2)
+                    .text(`...and ${arrangements.length - CONFIG.layout.maxDisplayRows} more arrangements`);
+            }
+            
+            // Update arrangement count and formula
+            updateArrangementDisplay(totalArrangements, arrangements.length > CONFIG.layout.maxDisplayRows);
+        }
+        
+        // Update arrangement count display
+        function updateArrangementDisplay(count, hasMore) {
+            let textGroup = svg.select(".text-layer").select(".arrangement-group");
+            const textOffsetX = getTextOffsetX(familySize);
+            
+            // Create text group if it doesn't exist
+            if (textGroup.empty()) {
+                textGroup = svg.select(".text-layer").append("g")
+                    .attr("class", "arrangement-group");
+                
+                textGroup.append("text")
+                    .attr("class", "arrangement-count")
+                    .attr("x", textOffsetX)
+                    .attr("y", CONFIG.text.offsetY)
+                    .text(`${count} arrangements`);
+                
+                textGroup.append("text")
+                    .attr("class", "formula-text")
+                    .attr("x", textOffsetX)
+                    .attr("y", CONFIG.text.offsetY + 30)
+                    .text(`${familySize}! = ${count}`);
+                
+                textGroup.append("text")
+                    .attr("class", "formula-text")
+                    .attr("x", textOffsetX)
+                    .attr("y", CONFIG.text.offsetY + 60)
+                    .text("Each person can");
+                
+                textGroup.append("text")
+                    .attr("class", "formula-text")
+                    .attr("x", textOffsetX)
+                    .attr("y", CONFIG.text.offsetY + 80)
+                    .text("be in any position");
+                
+                // Add "more arrangements" text that will be shown/hidden
+                textGroup.append("text")
+                    .attr("class", "more-arrangements-text")
+                    .attr("x", textOffsetX)
+                    .attr("y", CONFIG.text.offsetY + 110)
+                    .style("font-size", "14px")
+                    .style("fill", "#9ca3af")
+                    .style("font-style", "italic")
+                    .text("(showing first 10 rows)");
+            } else {
+                // Update positions for existing text elements
+                textGroup.selectAll("text")
+                    .attr("x", textOffsetX);
+            }
+            
+            // Update text with animation
+            textGroup.select(".arrangement-count")
+                .transition()
+                .duration(CONFIG.transitions.textDuration)
+                .tween("text", function() {
+                    const currentText = this.textContent.replace(/[^\d]/g, '');
+                    const currentValue = currentText ? +currentText : 0;
+                    const interpolator = d3.interpolateNumber(currentValue, count);
+                    
+                    return function(t) {
+                        const value = Math.round(interpolator(t));
+                        this.textContent = `${value} arrangement${value !== 1 ? 's' : ''}`;
+                    };
+                });
+            
+            textGroup.select(".formula-text")
+                .text(`${familySize}! = ${count}`);
+            
+            // Show/hide the "more arrangements" text
+            textGroup.select(".more-arrangements-text")
+                .style("opacity", hasMore ? 1 : 0);
+        }
+        
+        // Event handlers
+        const slider = document.getElementById('familySlider');
+        
+        // Update display immediately but debounce visualization updates
+        slider.addEventListener('input', function(e) {
+            familySize = parseInt(e.target.value);
+            document.getElementById('familySize').textContent = familySize;
+        });
+        
+        // Update visualization only when user stops dragging
+        slider.addEventListener('change', function(e) {
+            familySize = parseInt(e.target.value);
+            document.getElementById('familySize').textContent = familySize;
+            updateFactorialVisualization();
+        });
+        
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

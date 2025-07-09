@@ -14,6 +14,36 @@
             background: #f8fafc;
         }
         
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                max-width: 100%;
+            }
+            
+            .widget-container {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .slider-container {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            
+            #familySlider {
+                width: 250px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            h1 {
+                font-size: 24px !important;
+            }
+        }
+        
         .widget-container {
             background: white;
             padding: 30px;
@@ -84,6 +114,30 @@
         svg {
             display: block;
             margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .widget-container {
+            text-align: center;
+        }
+        
+        #linearVisualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .cost-display {
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .cost-amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #10b981;
         }
         
         .nav-header {
@@ -131,33 +185,49 @@
         
         <div class="slider-container">
             <label class="slider-label">Family Size:</label>
-            <input type="range" min="1" max="8" value="4" id="familySlider">
+            <input type="range" min="2" max="8" value="4" id="familySlider">
             <span class="family-size" id="familySize">4</span>
         </div>
         
         <div class="section-title">Linear Growth: Airline Costs</div>
         <div id="linearVisualization"></div>
+        <div class="cost-display" id="costDisplay">
+            <div class="cost-amount">$1000 😊</div>
+        </div>
     </div>
 
     <script>
         // Global variables
         let familySize = 4;
         
+        
+        function getSvgWidth() {
+            return 400;
+        }
+        
+        function getSvgHeight() {
+            // Height based on number of tickets: start position + (tickets * spacing) + ticket height + padding
+            return CONFIG.ticket.startY + (familySize * CONFIG.ticket.spacing) + CONFIG.ticket.height + 20;
+        }
+        
+        function getTicketStartX() {
+            return 150; // Centered for all devices
+        }
+        
+        
         // Configuration constants
         const CONFIG = {
-            width: 400,
-            height: 200,
+            get width() { return getSvgWidth(); },
+            get height() { return getSvgHeight(); },
             ticket: {
                 width: 100,
                 height: 40,
                 spacing: 8,
-                startX: 50,
+                get startX() { return getTicketStartX(); },
                 startY: 50
             },
             cost: {
-                perPerson: 250,
-                textOffsetX: 200,
-                textBaselineOffset: 8
+                perPerson: 250
             },
             transitions: {
                 duration: 500,
@@ -188,7 +258,9 @@
             svg = d3.select("#linearVisualization")
                 .append("svg")
                 .attr("width", CONFIG.width)
-                .attr("height", CONFIG.height);
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
             
             // Create defs for filters
             const defs = svg.append("defs");
@@ -282,6 +354,11 @@
             const cost = familySize * CONFIG.cost.perPerson;
             const ticketData = d3.range(familySize);
             
+            // Update SVG dimensions based on content
+            svg.attr("width", CONFIG.width)
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`);
+            
             // Update tickets using D3's enter/update/exit pattern
             const tickets = svg.selectAll(".ticket-group")
                 .data(ticketData);
@@ -313,51 +390,11 @@
             updateCostDisplay(cost);
         }
         
-        // Update cost display
+        // Update cost display using HTML
         function updateCostDisplay(cost) {
-            let costGroup = svg.select(".cost-group");
-            
-            // Calculate vertical center position
-            const ticketStackHeight = Math.max(0, familySize - 1) * CONFIG.ticket.spacing + CONFIG.ticket.height;
-            const textY = CONFIG.ticket.startY + ticketStackHeight / 2 + CONFIG.cost.textBaselineOffset;
-            
-            // Create cost group if it doesn't exist
-            if (costGroup.empty()) {
-                costGroup = svg.append("g")
-                    .attr("class", "cost-group")
-                    .attr("transform", `translate(${CONFIG.cost.textOffsetX}, ${textY})`); // Set initial position
-                
-                costGroup.append("text")
-                    .attr("class", "cost-text")
-                    .attr("x", 0)
-                    .attr("y", 0)
-                    .attr("text-anchor", "start")
-                    .style("font-size", "28px")
-                    .style("font-weight", "bold")
-                    .style("fill", "#10b981")
-                    .text(`$${cost.toLocaleString()} ${EMOJI_MAP[familySize] || "💀"}`);
-            } else {
-                // Update position only if cost group already exists
-                costGroup
-                    .transition()
-                    .duration(CONFIG.transitions.duration)
-                    .attr("transform", `translate(${CONFIG.cost.textOffsetX}, ${textY})`);
-            }
-            
-            // Update text with animation
+            const costElement = document.getElementById('costDisplay').querySelector('.cost-amount');
             const currentEmoji = EMOJI_MAP[familySize] || "💀";
-            costGroup.select(".cost-text")
-                .transition()
-                .duration(CONFIG.transitions.textDuration)
-                .tween("text", function() {
-                    const currentText = this.textContent.replace(/[$,😊😄😐😰😟😢😭🫠💀]/g, '');
-                    const currentValue = currentText ? +currentText : 0;
-                    const interpolator = d3.interpolateNumber(currentValue, cost);
-                    
-                    return function(t) {
-                        this.textContent = `$${Math.round(interpolator(t)).toLocaleString()} ${currentEmoji}`;
-                    };
-                });
+            costElement.textContent = `$${cost.toLocaleString()} ${currentEmoji}`;
         }
         
         // Event handlers

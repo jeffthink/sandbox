@@ -14,6 +14,36 @@
             background: #f8fafc;
         }
         
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                max-width: 100%;
+            }
+            
+            .widget-container {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .slider-container {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            
+            #familySlider {
+                width: 250px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            h1 {
+                font-size: 24px !important;
+            }
+        }
+        
         .nav-header {
             background: #f8fafc;
             padding: 1rem 0;
@@ -114,6 +144,37 @@
         svg {
             display: block;
             margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #factorialVisualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .arrangement-display {
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .arrangement-count {
+            font-size: 28px;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+        
+        .formula-text {
+            font-size: 16px;
+            color: #6b7280;
+            margin: 5px 0;
+        }
+        
+        .widget-container {
+            text-align: center;
         }
         
         .person-avatar {
@@ -137,14 +198,14 @@
         .arrangement-count {
             font-size: 28px;
             font-weight: bold;
-            fill: #dc2626;
-            text-anchor: start;
+            color: #10b981;
         }
+        
         
         .formula-text {
             font-size: 16px;
-            fill: #6b7280;
-            text-anchor: start;
+            color: #6b7280;
+            margin: 5px 0;
         }
         
         .line-arrangement {
@@ -176,22 +237,46 @@
         
         <div class="slider-container">
             <label class="slider-label">Family Size:</label>
-            <input type="range" min="2" max="6" value="4" id="familySlider">
+            <input type="range" min="2" max="8" value="4" id="familySlider">
             <span class="family-size" id="familySize">4</span>
         </div>
         
         <div class="section-title">Factorial Growth: Line Arrangements</div>
         <div id="factorialVisualization"></div>
+        <div class="arrangement-display" id="arrangementDisplay">
+            <div class="arrangement-count">24 arrangements</div>
+            <div class="formula-text">4! = 24</div>
+            <div class="formula-text">Each person can</div>
+            <div class="formula-text">be in any position</div>
+        </div>
     </div>
 
     <script>
         // Global variables
         let familySize = 4;
         
+        function getSvgWidth() {
+            return 350;
+        }
+        
+        function getSvgHeight() {
+            // Height based on number of displayed arrangements: start position + (rows * spacing) + padding
+            const totalArrangements = factorial(familySize);
+            const displayRows = Math.min(totalArrangements, CONFIG.layout.maxDisplayRows);
+            return CONFIG.layout.startY + (displayRows * CONFIG.person.lineSpacing) + 40;
+        }
+        
+        function getLayoutStartX(familySize = 4) {
+            // Center the visualization based on actual family size
+            // Use same approach as exponential page: familySize * spacing
+            const totalWidth = familySize * CONFIG.person.spacing;
+            return (getSvgWidth() / 2) - (totalWidth / 2);
+        }
+        
         // Configuration constants
         const CONFIG = {
-            width: 700,
-            height: 500,
+            get width() { return getSvgWidth(); },
+            get height() { return getSvgHeight(); },
             person: {
                 radius: 15,
                 spacing: 45,
@@ -202,10 +287,6 @@
                 startY: 50,
                 maxDisplayRows: 10
             },
-            text: {
-                baseOffsetX: 350,
-                offsetY: 80
-            },
             transitions: {
                 duration: 500,
                 textDuration: 400
@@ -213,14 +294,9 @@
         };
         
         // Person names for variety
-        const PERSON_NAMES = ["1", "2", "3", "4", "5", "6"];
-        const PERSON_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+        const PERSON_NAMES = ["1", "2", "3", "4", "5", "6", "7", "8"];
+        const PERSON_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
         
-        // Calculate text position based on family size
-        function getTextOffsetX(familySize) {
-            const visualizationWidth = familySize * CONFIG.person.spacing + 50;
-            return Math.max(CONFIG.text.baseOffsetX, CONFIG.layout.startX + visualizationWidth + 30);
-        }
         
         let svg;
         
@@ -238,7 +314,9 @@
             svg = d3.select("#factorialVisualization")
                 .append("svg")
                 .attr("width", CONFIG.width)
-                .attr("height", CONFIG.height);
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
             
             // Create layer groups to ensure proper z-order
             svg.append("g").attr("class", "lines-layer");
@@ -283,14 +361,15 @@
         }
         
         // Calculate positions for line arrangements
-        function calculateArrangementPositions(arrangements) {
+        function calculateArrangementPositions(arrangements, familySize) {
             const positions = [];
             const displayRows = Math.min(arrangements.length, CONFIG.layout.maxDisplayRows);
+            const layoutStartX = getLayoutStartX(familySize);
             
             arrangements.slice(0, displayRows).forEach((arrangement, rowIndex) => {
                 const rowPositions = [];
                 arrangement.forEach((personIndex, colIndex) => {
-                    const x = CONFIG.layout.startX + colIndex * CONFIG.person.spacing;
+                    const x = layoutStartX + colIndex * CONFIG.person.spacing;
                     const y = CONFIG.layout.startY + rowIndex * CONFIG.person.lineSpacing;
                     
                     rowPositions.push({
@@ -310,8 +389,13 @@
         // Factorial Growth Visualization
         function updateFactorialVisualization() {
             const arrangements = generateArrangements(familySize);
-            const arrangementPositions = calculateArrangementPositions(arrangements);
+            const arrangementPositions = calculateArrangementPositions(arrangements, familySize);
             const totalArrangements = factorial(familySize);
+            
+            // Update SVG dimensions based on content
+            svg.attr("width", CONFIG.width)
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`);
             
             // Flatten positions for D3 data binding
             const flatPositions = arrangementPositions.flat();
@@ -423,10 +507,11 @@
                 .remove();
             
             if (hasMoreArrangements) {
+                const layoutStartX = getLayoutStartX(familySize);
                 const moreEnter = moreIndicator.enter()
                     .append("text")
                     .attr("class", "more-indicator")
-                    .attr("x", CONFIG.layout.startX + familySize * CONFIG.person.spacing / 2)
+                    .attr("x", layoutStartX + familySize * CONFIG.person.spacing / 2)
                     .attr("y", CONFIG.layout.startY + CONFIG.layout.maxDisplayRows * CONFIG.person.lineSpacing + 20)
                     .style("text-anchor", "middle")
                     .style("font-size", "14px")
@@ -443,7 +528,7 @@
                 moreIndicator
                     .transition()
                     .duration(CONFIG.transitions.duration)
-                    .attr("x", CONFIG.layout.startX + familySize * CONFIG.person.spacing / 2)
+                    .attr("x", layoutStartX + familySize * CONFIG.person.spacing / 2)
                     .text(`...and ${arrangements.length - CONFIG.layout.maxDisplayRows} more arrangements`);
             }
             
@@ -451,76 +536,14 @@
             updateArrangementDisplay(totalArrangements, arrangements.length > CONFIG.layout.maxDisplayRows);
         }
         
-        // Update arrangement count display
+        // Update arrangement count display using HTML
         function updateArrangementDisplay(count, hasMore) {
-            let textGroup = svg.select(".text-layer").select(".arrangement-group");
-            const textOffsetX = getTextOffsetX(familySize);
+            const arrangementElement = document.getElementById('arrangementDisplay').querySelector('.arrangement-count');
+            const formulaElements = document.getElementById('arrangementDisplay').querySelectorAll('.formula-text');
             
-            // Create text group if it doesn't exist
-            if (textGroup.empty()) {
-                textGroup = svg.select(".text-layer").append("g")
-                    .attr("class", "arrangement-group");
-                
-                textGroup.append("text")
-                    .attr("class", "arrangement-count")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY)
-                    .text(`${count} arrangements`);
-                
-                textGroup.append("text")
-                    .attr("class", "formula-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 30)
-                    .text(`${familySize}! = ${count}`);
-                
-                textGroup.append("text")
-                    .attr("class", "formula-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 60)
-                    .text("Each person can");
-                
-                textGroup.append("text")
-                    .attr("class", "formula-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 80)
-                    .text("be in any position");
-                
-                // Add "more arrangements" text that will be shown/hidden
-                textGroup.append("text")
-                    .attr("class", "more-arrangements-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 110)
-                    .style("font-size", "14px")
-                    .style("fill", "#9ca3af")
-                    .style("font-style", "italic")
-                    .text("(showing first 10 rows)");
-            } else {
-                // Update positions for existing text elements
-                textGroup.selectAll("text")
-                    .attr("x", textOffsetX);
-            }
-            
-            // Update text with animation
-            textGroup.select(".arrangement-count")
-                .transition()
-                .duration(CONFIG.transitions.textDuration)
-                .tween("text", function() {
-                    const currentText = this.textContent.replace(/[^\d]/g, '');
-                    const currentValue = currentText ? +currentText : 0;
-                    const interpolator = d3.interpolateNumber(currentValue, count);
-                    
-                    return function(t) {
-                        const value = Math.round(interpolator(t));
-                        this.textContent = `${value} arrangement${value !== 1 ? 's' : ''}`;
-                    };
-                });
-            
-            textGroup.select(".formula-text")
-                .text(`${familySize}! = ${count}`);
-            
-            // Show/hide the "more arrangements" text
-            textGroup.select(".more-arrangements-text")
-                .style("opacity", hasMore ? 1 : 0);
+            arrangementElement.textContent = `${count} arrangement${count !== 1 ? 's' : ''}`;
+            formulaElements[0].textContent = `${familySize}! = ${count}`;
+            // The other formula text elements remain static: "Each person can" and "be in any position"
         }
         
         // Event handlers

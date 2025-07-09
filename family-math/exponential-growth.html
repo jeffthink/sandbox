@@ -14,6 +14,36 @@
             background: #f8fafc;
         }
         
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                max-width: 100%;
+            }
+            
+            .widget-container {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .slider-container {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            
+            #familySlider {
+                width: 250px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            h1 {
+                font-size: 24px !important;
+            }
+        }
+        
         .widget-container {
             background: white;
             padding: 30px;
@@ -84,6 +114,37 @@
         svg {
             display: block;
             margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .widget-container {
+            text-align: center;
+        }
+        
+        #exponentialVisualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .scenario-display {
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .scenario-count {
+            font-size: 28px;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+        
+        .formula-text {
+            font-size: 16px;
+            color: #6b7280;
+            margin: 5px 0;
         }
         
         .nav-header {
@@ -181,6 +242,12 @@
         
         <div class="section-title">Exponential Growth: Decision Scenarios</div>
         <div id="exponentialVisualization"></div>
+        <div class="scenario-display" id="scenarioDisplay">
+            <div class="scenario-count">16 scenarios</div>
+            <div class="formula-text">2^4 = 16</div>
+            <div class="formula-text">Each person can</div>
+            <div class="formula-text">agree or disagree</div>
+        </div>
         
     </div>
 
@@ -188,17 +255,34 @@
         // Global variables
         let familySize = 4;
         
+        
+        function getSvgWidth() {
+            return 350;
+        }
+        
+        function getSvgHeight() {
+            // Height based on number of displayed rows: start position + (rows * spacing) + padding
+            const displayRows = Math.min(Math.pow(2, familySize), CONFIG.layout.maxDisplayRows);
+            return CONFIG.layout.startY + (displayRows * CONFIG.layout.rowSpacing) + 30;
+        }
+        
+        function getLayoutStartX(familySize = 4) {
+            // Center for all devices
+            const boxWidth = familySize * (30 + 4);
+            return (350 / 2) - (boxWidth / 2);
+        }
+        
         // Configuration constants
         const CONFIG = {
-            width: 700,
-            height: 400,
+            get width() { return getSvgWidth(); },
+            get height() { return getSvgHeight(); },
             box: {
                 width: 30,
                 height: 20,
                 spacing: 4
             },
             layout: {
-                startX: 50,
+                startX: 50, // Will be dynamically calculated in updateExponentialVisualization
                 startY: 50,
                 rowSpacing: 25,
                 maxDisplayRows: 10
@@ -213,11 +297,6 @@
             }
         };
         
-        // Calculate text position based on family size
-        function getTextOffsetX(familySize) {
-            const visualizationWidth = familySize * (CONFIG.box.width + CONFIG.box.spacing);
-            return Math.max(CONFIG.text.baseOffsetX, CONFIG.layout.startX + visualizationWidth + 30);
-        }
         
         let svg;
         
@@ -235,7 +314,9 @@
             svg = d3.select("#exponentialVisualization")
                 .append("svg")
                 .attr("width", CONFIG.width)
-                .attr("height", CONFIG.height);
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
             
             // Create layer groups to ensure proper z-order
             svg.append("g").attr("class", "scenarios-layer");
@@ -306,14 +387,15 @@
         }
         
         // Calculate layout positions for decision boxes
-        function calculateBoxPositions(scenarios) {
+        function calculateBoxPositions(scenarios, familySize) {
             const positions = [];
             const displayRows = Math.min(scenarios.length, CONFIG.layout.maxDisplayRows);
+            const layoutStartX = getLayoutStartX(familySize);
             
             scenarios.slice(0, displayRows).forEach((scenario, rowIndex) => {
                 const rowPositions = [];
                 scenario.forEach((decision, colIndex) => {
-                    const x = CONFIG.layout.startX + colIndex * (CONFIG.box.width + CONFIG.box.spacing);
+                    const x = layoutStartX + colIndex * (CONFIG.box.width + CONFIG.box.spacing);
                     const y = CONFIG.layout.startY + rowIndex * CONFIG.layout.rowSpacing;
                     
                     rowPositions.push({
@@ -333,8 +415,13 @@
         // Exponential Growth Visualization
         function updateExponentialVisualization() {
             const scenarios = generateScenarios(familySize);
-            const boxPositions = calculateBoxPositions(scenarios);
+            const boxPositions = calculateBoxPositions(scenarios, familySize);
             const totalScenarios = Math.pow(2, familySize);
+            
+            // Update SVG dimensions based on content
+            svg.attr("width", CONFIG.width)
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`);
             
             // Flatten positions for D3 data binding
             const flatPositions = boxPositions.flat();
@@ -388,6 +475,7 @@
                 .text(d => d.decision ? "✓" : "✗");
             
             // Update number headers
+            const layoutStartX = getLayoutStartX(familySize);
             const numberLabels = svg.select(".labels-layer").selectAll(".number-label")
                 .data(d3.range(familySize));
             
@@ -400,7 +488,7 @@
             numberLabels.enter()
                 .append("text")
                 .attr("class", "number-label")
-                .attr("x", (d, i) => CONFIG.layout.startX + i * (CONFIG.box.width + CONFIG.box.spacing) + CONFIG.box.width / 2)
+                .attr("x", (d, i) => layoutStartX + i * (CONFIG.box.width + CONFIG.box.spacing) + CONFIG.box.width / 2)
                 .attr("y", CONFIG.layout.startY - 10)
                 .style("text-anchor", "middle")
                 .style("font-size", "12px")
@@ -415,7 +503,7 @@
             numberLabels
                 .transition()
                 .duration(CONFIG.transitions.duration)
-                .attr("x", (d, i) => CONFIG.layout.startX + i * (CONFIG.box.width + CONFIG.box.spacing) + CONFIG.box.width / 2);
+                .attr("x", (d, i) => layoutStartX + i * (CONFIG.box.width + CONFIG.box.spacing) + CONFIG.box.width / 2);
             
             // Add "...and more..." indicator if there are more rows than displayed
             const hasMoreRows = scenarios.length > CONFIG.layout.maxDisplayRows;
@@ -432,7 +520,7 @@
                 const moreEnter = moreIndicator.enter()
                     .append("text")
                     .attr("class", "more-indicator")
-                    .attr("x", CONFIG.layout.startX + familySize * (CONFIG.box.width + CONFIG.box.spacing) / 2)
+                    .attr("x", layoutStartX + familySize * (CONFIG.box.width + CONFIG.box.spacing) / 2)
                     .attr("y", CONFIG.layout.startY + CONFIG.layout.maxDisplayRows * CONFIG.layout.rowSpacing + 15)
                     .style("text-anchor", "middle")
                     .style("font-size", "14px")
@@ -449,7 +537,7 @@
                 moreIndicator
                     .transition()
                     .duration(CONFIG.transitions.duration)
-                    .attr("x", CONFIG.layout.startX + familySize * (CONFIG.box.width + CONFIG.box.spacing) / 2)
+                    .attr("x", layoutStartX + familySize * (CONFIG.box.width + CONFIG.box.spacing) / 2)
                     .text(`...and ${scenarios.length - CONFIG.layout.maxDisplayRows} more scenarios`);
             }
             
@@ -457,76 +545,14 @@
             updateScenarioDisplay(totalScenarios, scenarios.length > CONFIG.layout.maxDisplayRows);
         }
         
-        // Update scenario count display
+        // Update scenario count display using HTML
         function updateScenarioDisplay(count, hasMore) {
-            let textGroup = svg.select(".text-layer").select(".scenario-group");
-            const textOffsetX = getTextOffsetX(familySize);
+            const scenarioElement = document.getElementById('scenarioDisplay').querySelector('.scenario-count');
+            const formulaElements = document.getElementById('scenarioDisplay').querySelectorAll('.formula-text');
             
-            // Create text group if it doesn't exist
-            if (textGroup.empty()) {
-                textGroup = svg.select(".text-layer").append("g")
-                    .attr("class", "scenario-group");
-                
-                textGroup.append("text")
-                    .attr("class", "scenario-count")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY)
-                    .text(`${count} scenarios`);
-                
-                textGroup.append("text")
-                    .attr("class", "formula-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 30)
-                    .text(`2^${familySize} = ${count}`);
-                
-                textGroup.append("text")
-                    .attr("class", "formula-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 60)
-                    .text("Each person can");
-                
-                textGroup.append("text")
-                    .attr("class", "formula-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 80)
-                    .text("agree or disagree");
-                
-                // Add "more scenarios" text that will be shown/hidden
-                textGroup.append("text")
-                    .attr("class", "more-scenarios-text")
-                    .attr("x", textOffsetX)
-                    .attr("y", CONFIG.text.offsetY + 110)
-                    .style("font-size", "14px")
-                    .style("fill", "#9ca3af")
-                    .style("font-style", "italic")
-                    .text("(showing first 10 rows)");
-            } else {
-                // Update positions for existing text elements
-                textGroup.selectAll("text")
-                    .attr("x", textOffsetX);
-            }
-            
-            // Update text with animation
-            textGroup.select(".scenario-count")
-                .transition()
-                .duration(CONFIG.transitions.textDuration)
-                .tween("text", function() {
-                    const currentText = this.textContent.replace(/[^\d]/g, '');
-                    const currentValue = currentText ? +currentText : 0;
-                    const interpolator = d3.interpolateNumber(currentValue, count);
-                    
-                    return function(t) {
-                        const value = Math.round(interpolator(t));
-                        this.textContent = `${value} scenario${value !== 1 ? 's' : ''}`;
-                    };
-                });
-            
-            textGroup.select(".formula-text")
-                .text(`2^${familySize} = ${count}`);
-            
-            // Show/hide the "more scenarios" text
-            textGroup.select(".more-scenarios-text")
-                .style("opacity", hasMore ? 1 : 0);
+            scenarioElement.textContent = `${count} scenario${count !== 1 ? 's' : ''}`;
+            formulaElements[0].textContent = `2^${familySize} = ${count}`;
+            // The other formula text elements remain static: "Each person can" and "agree or disagree"
         }
         
         // Event handlers

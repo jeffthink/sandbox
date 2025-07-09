@@ -14,6 +14,36 @@
             background: #f8fafc;
         }
         
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                max-width: 100%;
+            }
+            
+            .widget-container {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .slider-container {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            
+            #familySlider {
+                width: 250px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            h1 {
+                font-size: 24px !important;
+            }
+        }
+        
         .widget-container {
             background: white;
             padding: 30px;
@@ -84,6 +114,30 @@
         svg {
             display: block;
             margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .widget-container {
+            text-align: center;
+        }
+        
+        #quadraticVisualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .relationship-display {
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .relationship-count {
+            font-size: 28px;
+            font-weight: bold;
+            color: #10b981;
         }
         
         .nav-header {
@@ -161,26 +215,39 @@
         
         <div class="slider-container">
             <label class="slider-label">Family Size:</label>
-            <input type="range" min="1" max="8" value="4" id="familySlider">
+            <input type="range" min="2" max="8" value="4" id="familySlider">
             <span class="family-size" id="familySize">4</span>
         </div>
         
         <div class="section-title">Quadratic Growth: Family Relationships</div>
         <div id="quadraticVisualization"></div>
+        <div class="relationship-display" id="relationshipDisplay">
+            <div class="relationship-count">6 relationships</div>
+        </div>
     </div>
 
     <script>
         // Global variables
         let familySize = 4;
         
+        
+        function getSvgWidth() {
+            return 350;
+        }
+        
+        function getSvgHeight() {
+            // Height based on circle radius and center position
+            return CONFIG.member.centerY + CONFIG.member.circleRadius + 30;
+        }
+        
         // Configuration constants
         const CONFIG = {
-            width: 500,
-            height: 300,
+            get width() { return getSvgWidth(); },
+            get height() { return getSvgHeight(); },
             member: {
                 radius: 20,
-                centerX: 150,
-                centerY: 150,
+                centerX: 175, // Center of 350px SVG
+                centerY: 125,
                 circleRadius: 80
             },
             relationships: {
@@ -256,7 +323,9 @@
             svg = d3.select("#quadraticVisualization")
                 .append("svg")
                 .attr("width", CONFIG.width)
-                .attr("height", CONFIG.height);
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
             
             // Create defs for filters
             const defs = svg.append("defs");
@@ -329,6 +398,11 @@
             const positions = calculateMemberPositions(familySize);
             const memberEmotions = assignEmotions(familySize);
             const connections = generateConnections(positions);
+            
+            // Update SVG dimensions based on content
+            svg.attr("width", CONFIG.width)
+                .attr("height", CONFIG.height)
+                .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`);
             
             // Add emotion data to positions
             positions.forEach((pos, i) => {
@@ -439,43 +513,10 @@
             updateRelationshipDisplay(relationshipCount);
         }
         
-        // Update relationship count display
+        // Update relationship count display using HTML
         function updateRelationshipDisplay(count) {
-            let relationshipGroup = svg.select(".text-layer").select(".relationship-group");
-            
-            const textY = CONFIG.member.centerY + CONFIG.relationships.textBaselineOffset;
-            
-            // Create relationship group if it doesn't exist
-            if (relationshipGroup.empty()) {
-                relationshipGroup = svg.select(".text-layer").append("g")
-                    .attr("class", "relationship-group")
-                    .attr("transform", `translate(${CONFIG.relationships.textOffsetX}, ${textY})`);
-                
-                relationshipGroup.append("text")
-                    .attr("class", "relationship-text")
-                    .attr("x", 0)
-                    .attr("y", 0)
-                    .attr("text-anchor", "start")
-                    .style("font-size", "28px")
-                    .style("font-weight", "bold")
-                    .style("fill", "#10b981")
-                    .text(`${count} relationships`);
-            }
-            
-            // Update text with animation
-            relationshipGroup.select(".relationship-text")
-                .transition()
-                .duration(CONFIG.transitions.textDuration)
-                .tween("text", function() {
-                    const currentText = this.textContent.replace(/[^\d]/g, '');
-                    const currentValue = currentText ? +currentText : 0;
-                    const interpolator = d3.interpolateNumber(currentValue, count);
-                    
-                    return function(t) {
-                        const value = Math.round(interpolator(t));
-                        this.textContent = `${value} relationship${value !== 1 ? 's' : ''}`;
-                    };
-                });
+            const relationshipElement = document.getElementById('relationshipDisplay').querySelector('.relationship-count');
+            relationshipElement.textContent = `${count} relationship${count !== 1 ? 's' : ''}`;
         }
         
         // Event handlers

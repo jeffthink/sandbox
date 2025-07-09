@@ -29,19 +29,6 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/family-math/:path*",
-      "has": [
-        {
-          "type": "query",
-          "key": "embed",
-          "value": "true"
-        }
-      ],
-      "destination": "/family-math/:path*?mode=embed"
-    }
-  ],
   "cleanUrls": true,
   "trailingSlash": false
 }

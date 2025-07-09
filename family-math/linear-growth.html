@@ -230,9 +230,9 @@
                 perPerson: 250
             },
             transitions: {
-                duration: 500,
-                textDuration: 400,
-                enterDelay: 100
+                duration: 150,
+                textDuration: 150,
+                enterDelay: 30
             }
         };
         
@@ -359,6 +359,9 @@
                 .attr("height", CONFIG.height)
                 .attr("viewBox", `0 0 ${CONFIG.width} ${CONFIG.height}`);
             
+            // Check if this is the first load
+            const isFirstLoad = svg.selectAll(".ticket-group").empty();
+            
             // Update tickets using D3's enter/update/exit pattern
             const tickets = svg.selectAll(".ticket-group")
                 .data(ticketData);
@@ -376,13 +379,24 @@
                 .attr("class", "ticket-group")
                 .attr("transform", (d, i) => 
                     `translate(${CONFIG.ticket.startX}, ${CONFIG.ticket.startY + i * CONFIG.ticket.spacing})`)
-                .style("opacity", 1); // Start visible for debugging
+                .style("opacity", isFirstLoad ? 1 : 0);
             
             // Build ticket structure for new tickets
             createTicketStructure(ticketEnter);
             
+            // Animate new tickets in (only if not first load)
+            if (!isFirstLoad) {
+                ticketEnter
+                    .transition()
+                    .duration(CONFIG.transitions.duration)
+                    .delay((d, i) => i * CONFIG.transitions.enterDelay)
+                    .style("opacity", 1);
+            }
+            
             // UPDATE: Reposition all tickets (both existing and new)
-            tickets.merge(ticketEnter)
+            tickets
+                .transition()
+                .duration(CONFIG.transitions.duration)
                 .attr("transform", (d, i) => 
                     `translate(${CONFIG.ticket.startX}, ${CONFIG.ticket.startY + i * CONFIG.ticket.spacing})`);
             

@@ -1,9 +1,6 @@
 {
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "buildCommand": "echo 'No build needed - static site'",
+  "outputDirectory": ".",
   "headers": [
     {
       "source": "/(.*)",

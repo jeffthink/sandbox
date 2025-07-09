@@ -5,6 +5,9 @@
   "scripts": {
     "serve": "live-server --port=3000 --open=index.html",
     "start": "npm run serve",
+    "build": "echo 'No build step needed for static site'",
+    "deploy": "vercel --prod",
+    "deploy-preview": "vercel",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["html", "experiments", "scratch", "visualizations"],
@@ -12,6 +15,7 @@
   "license": "ISC",
   "description": "A scratch pad repository for HTML experiments and interactive visualizations",
   "devDependencies": {
-    "live-server": "^1.2.2"
+    "live-server": "^1.2.2",
+    "vercel": "^33.0.0"
   }
 }

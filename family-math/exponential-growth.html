@@ -6,6 +6,50 @@
     <title>Exponential Growth: Family Decision Making</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <style>
+        /* Embed mode styles */
+        body.embed-mode {
+            margin: 0;
+            padding: 10px;
+            background: white;
+            min-height: 100vh;
+            max-width: 100%;
+        }
+        
+        body.embed-mode .widget-container {
+            padding: 20px;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        
+        body.embed-mode .family-size {
+            font-size: 18px;
+        }
+        
+        body.embed-mode .slider-label {
+            font-size: 14px;
+        }
+        
+        body.embed-mode .scenario-count {
+            font-size: 24px;
+        }
+        
+        body.embed-mode #familySlider {
+            width: 200px;
+            height: 6px;
+        }
+        
+        body.embed-mode .nav-header {
+            display: none;
+        }
+        
+        body.embed-mode h1 {
+            font-size: 20px !important;
+            margin-bottom: 20px !important;
+        }
+        
+        body.embed-mode .section-title {
+            font-size: 16px;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             max-width: 800px;
@@ -257,7 +301,7 @@
         
         
         function getSvgWidth() {
-            return 350;
+            return isEmbedMode ? Math.min(350, window.innerWidth - 40) : 350;
         }
         
         function getSvgHeight() {
@@ -271,6 +315,13 @@
             const boxWidth = familySize * (30 + 4);
             return (350 / 2) - (boxWidth / 2);
         }
+        
+        // Detect embed mode from URL parameters and iframe context
+        const urlParams = new URLSearchParams(window.location.search);
+        const isInIframe = window.self !== window.top;
+        const isEmbedMode = urlParams.get('mode') === 'embed' || 
+                           urlParams.get('embed') === 'true' || 
+                           isInIframe;
         
         // Configuration constants
         const CONFIG = {
@@ -302,8 +353,54 @@
         
         // Initialize visualization
         function init() {
+            initializeEmbedMode();
             setupVisualization();
             updateExponentialVisualization();
+        }
+        
+        // Initialize embed mode functionality
+        function initializeEmbedMode() {
+            if (isEmbedMode) {
+                // Apply embed mode class to body
+                document.body.classList.add('embed-mode');
+                
+                // Load Pym.js for responsive iframe behavior
+                loadPymJS();
+                
+                // Add resize handler
+                window.addEventListener('resize', handleResize);
+            }
+        }
+        
+        // Load Pym.js library dynamically
+        function loadPymJS() {
+            if (typeof pym === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://pym.npr.org/pym.v1.min.js';
+                script.onload = function() {
+                    window.pymChild = new pym.Child();
+                    notifyHeightChange();
+                };
+                document.head.appendChild(script);
+            } else {
+                window.pymChild = new pym.Child();
+                notifyHeightChange();
+            }
+        }
+        
+        // Handle window resize for embed mode
+        function handleResize() {
+            if (isEmbedMode) {
+                setupVisualization();
+                updateExponentialVisualization();
+            }
+        }
+        
+        // Notify parent iframe of height change
+        function notifyHeightChange() {
+            if (window.pymChild) {
+                window.pymChild.sendHeight();
+            }
         }
         
         // One-time setup
@@ -543,6 +640,11 @@
             
             // Update scenario count and formula
             updateScenarioDisplay(totalScenarios, scenarios.length > CONFIG.layout.maxDisplayRows);
+            
+            // Notify parent of height change for responsive iframe
+            if (isEmbedMode) {
+                notifyHeightChange();
+            }
         }
         
         // Update scenario count display using HTML

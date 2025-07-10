@@ -102,16 +102,55 @@ An interactive visualization showing how arrangement complexity grows factoriall
 
 All visualizations have dedicated embed routes (`*-embed`) optimized for iframe embedding:
 - Minimal UI with no navigation
-- Responsive sizing with Pym.js
+- Responsive sizing with iframe-resizer
 - Clean styling for integration
+- Automatic height adjustment
 
-Example:
+### Basic Embedding
+
+For a single iframe:
 ```html
-<iframe src="https://yourdomain.com/family-math/linear-embed" 
+<iframe id="linear-viz" 
+        src="https://yourdomain.com/family-math/linear-embed" 
         width="100%" 
-        height="400">
+        style="border: none;">
 </iframe>
+
+<script>
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/iframe-resizer@4/js/iframeResizer.min.js';
+  script.onload = function() {
+    iFrameResize({ log: false }, '#linear-viz');
+  };
+  document.head.appendChild(script);
+</script>
 ```
+
+### Multiple Iframes
+
+When embedding multiple visualizations on the same page, load the script once:
+```html
+<!-- Your iframes -->
+<iframe id="linear-viz" src="https://yourdomain.com/family-math/linear-embed" width="100%" style="border: none;"></iframe>
+<iframe id="quadratic-viz" src="https://yourdomain.com/family-math/quadratic-embed" width="100%" style="border: none;"></iframe>
+<iframe id="exponential-viz" src="https://yourdomain.com/family-math/exponential-embed" width="100%" style="border: none;"></iframe>
+<iframe id="factorial-viz" src="https://yourdomain.com/family-math/factorial-embed" width="100%" style="border: none;"></iframe>
+
+<!-- Load iframe-resizer once for all iframes -->
+<script>
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/iframe-resizer@4/js/iframeResizer.min.js';
+  script.onload = function() {
+    iFrameResize({ log: false }, '#linear-viz');
+    iFrameResize({ log: false }, '#quadratic-viz');
+    iFrameResize({ log: false }, '#exponential-viz');
+    iFrameResize({ log: false }, '#factorial-viz');
+  };
+  document.head.appendChild(script);
+</script>
+```
+
+**Note:** The embed pages automatically include the iframe-resizer child component, so you only need to set up the parent side.
 
 ## Adding New Experiments
 

@@ -1,6 +1,6 @@
 <script>
 	import QuadraticVisualization from '$lib/components/visualizations/QuadraticVisualization.svelte';
-	import PymChild from '$lib/components/PymChild.svelte';
+	import IframeResizerChild from '$lib/components/IframeResizerChild.svelte';
 	
 	let familySize = 4;
 	let relationshipDisplay = "6 relationships";
@@ -20,6 +20,6 @@
 	}
 </style>
 
-<PymChild>
+<IframeResizerChild>
 	<QuadraticVisualization bind:familySize bind:relationshipDisplay />
-</PymChild>
+</IframeResizerChild>

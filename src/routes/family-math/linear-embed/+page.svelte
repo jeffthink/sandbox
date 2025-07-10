@@ -1,6 +1,6 @@
 <script>
 	import LinearVisualization from '$lib/components/visualizations/LinearVisualization.svelte';
-	import PymChild from '$lib/components/PymChild.svelte';
+	import IframeResizerChild from '$lib/components/IframeResizerChild.svelte';
 	
 	let familySize = 4;
 	let costDisplay = "$1000 😊";
@@ -20,6 +20,6 @@
 	}
 </style>
 
-<PymChild>
+<IframeResizerChild>
 	<LinearVisualization bind:familySize bind:costDisplay />
-</PymChild>
+</IframeResizerChild>

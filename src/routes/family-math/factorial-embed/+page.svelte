@@ -1,6 +1,6 @@
 <script>
 	import FactorialVisualization from '$lib/components/visualizations/FactorialVisualization.svelte';
-	import PymChild from '$lib/components/PymChild.svelte';
+	import IframeResizerChild from '$lib/components/IframeResizerChild.svelte';
 	
 	let familySize = 4;
 	let arrangementDisplay = "24 arrangements";
@@ -21,11 +21,11 @@
 	}
 </style>
 
-<PymChild>
+<IframeResizerChild>
 	<FactorialVisualization 
 		bind:familySize 
 		bind:arrangementDisplay 
 		bind:formulaDisplay 
 		showFullText={false} 
 	/>
-</PymChild>
+</IframeResizerChild>

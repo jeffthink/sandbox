@@ -1,6 +1,6 @@
 <script>
 	import ExponentialVisualization from '$lib/components/visualizations/ExponentialVisualization.svelte';
-	import PymChild from '$lib/components/PymChild.svelte';
+	import IframeResizerChild from '$lib/components/IframeResizerChild.svelte';
 	
 	let familySize = 4;
 	let scenarioDisplay = "16 scenarios";
@@ -21,11 +21,11 @@
 	}
 </style>
 
-<PymChild>
+<IframeResizerChild>
 	<ExponentialVisualization 
 		bind:familySize 
 		bind:scenarioDisplay 
 		bind:formulaDisplay 
 		showFullText={false} 
 	/>
-</PymChild>
+</IframeResizerChild>

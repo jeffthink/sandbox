@@ -67,6 +67,10 @@
 	</div>
 {/if}
 
-<div class="widget-container">
+{#if !$page.url.pathname.includes('-embed')}
+	<div class="widget-container">
+		<slot />
+	</div>
+{:else}
 	<slot />
-</div>
+{/if}

@@ -1,5 +1,6 @@
 <script>
 	import LinearVisualization from '$lib/components/visualizations/LinearVisualization.svelte';
+	import PymChild from '$lib/components/PymChild.svelte';
 	
 	let familySize = 4;
 	let costDisplay = "$1000 😊";
@@ -19,4 +20,6 @@
 	}
 </style>
 
-<LinearVisualization bind:familySize bind:costDisplay />
+<PymChild>
+	<LinearVisualization bind:familySize bind:costDisplay />
+</PymChild>

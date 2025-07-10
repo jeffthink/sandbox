@@ -1,5 +1,6 @@
 <script>
 	import QuadraticVisualization from '$lib/components/visualizations/QuadraticVisualization.svelte';
+	import PymChild from '$lib/components/PymChild.svelte';
 	
 	let familySize = 4;
 	let relationshipDisplay = "6 relationships";
@@ -19,4 +20,6 @@
 	}
 </style>
 
-<QuadraticVisualization bind:familySize bind:relationshipDisplay />
+<PymChild>
+	<QuadraticVisualization bind:familySize bind:relationshipDisplay />
+</PymChild>

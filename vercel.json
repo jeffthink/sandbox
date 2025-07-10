@@ -17,7 +17,7 @@
       ]
     },
     {
-      "source": "/family-math/(.*)",
+      "source": "/family-math/(.*)-embed",
       "headers": [
         {
           "key": "X-Frame-Options",

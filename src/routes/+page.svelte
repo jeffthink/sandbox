@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>HTML Scratch Pad - Experiments</title>
+	<title>Interactive Sandbox</title>
 </svelte:head>
 
 <style>
@@ -53,16 +53,16 @@
 	
 	.experiment-card a {
 		display: inline-block;
-		padding: 0.5rem 1rem;
-		background-color: #3498db;
-		color: white;
+		margin-top: 0.5rem;
+		color: #3498db;
 		text-decoration: none;
-		border-radius: 4px;
-		transition: background-color 0.2s ease;
+		font-weight: 500;
+		transition: color 0.2s ease;
 	}
 	
 	.experiment-card a:hover {
-		background-color: #2980b9;
+		color: #2980b9;
+		text-decoration: underline;
 	}
 	
 	.footer {
@@ -74,33 +74,33 @@
 </style>
 
 <div class="header">
-	<h1>HTML Scratch Pad</h1>
-	<p>A collection of HTML experiments and interactive visualizations</p>
+	<h1>Interactive Sandbox</h1>
+	<p>A collection of interactive visualizations and experiments</p>
 </div>
 
 <div class="experiments">
 	<div class="experiment-card">
 		<h3>Linear Growth Calculator</h3>
-		<p>Interactive family complexity calculator demonstrating linear growth patterns through airline ticket cost visualization using D3.js</p>
-		<a href="/family-math/linear">View Experiment</a>
+		<p>Interactive visualization demonstrating linear growth patterns through airline ticket cost calculations</p>
+		<a href="/family-math/linear">Explore →</a>
 	</div>
 	
 	<div class="experiment-card">
 		<h3>Quadratic Growth Relationships</h3>
-		<p>Explore how family relationships grow quadratically with family size through an interactive D3.js visualization of emotional connections</p>
-		<a href="/family-math/quadratic">View Experiment</a>
+		<p>Explore how relationships grow quadratically with group size through an interactive network visualization</p>
+		<a href="/family-math/quadratic">Explore →</a>
 	</div>
 	
 	<div class="experiment-card">
 		<h3>Exponential Growth Scenarios</h3>
-		<p>Visualize exponential growth through family decision-making scenarios where each person can agree or disagree on decisions</p>
-		<a href="/family-math/exponential">View Experiment</a>
+		<p>Visualize exponential growth through decision-making scenarios where each participant can agree or disagree</p>
+		<a href="/family-math/exponential">Explore →</a>
 	</div>
 	
 	<div class="experiment-card">
 		<h3>Factorial Growth Arrangements</h3>
-		<p>Understand factorial complexity through line ordering arrangements - see how family seating possibilities grow dramatically</p>
-		<a href="/family-math/factorial">View Experiment</a>
+		<p>Understand factorial complexity through ordering arrangements - see how possibilities grow dramatically with size</p>
+		<a href="/family-math/factorial">Explore →</a>
 	</div>
 </div>
 

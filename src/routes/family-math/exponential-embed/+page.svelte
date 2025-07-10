@@ -11,30 +11,38 @@
 </svelte:head>
 
 <style>
-	.section-title {
-		font-size: 20px;
-		font-weight: bold;
-		color: #1f2937;
-		margin-bottom: 15px;
-		text-align: center;
+	:global(body) {
+		margin: 0;
+		padding: 10px;
+		background: white;
+		min-height: 100vh;
+		max-width: 100%;
 	}
 	
-	@media (max-width: 768px) {
-		.section-title {
-			font-size: 18px;
-		}
+	:global(.widget-container) {
+		padding: 20px;
+		box-shadow: none;
+		border-radius: 0;
+		background: transparent;
+	}
+	
+	:global(.family-size) {
+		font-size: 18px;
+	}
+	
+	:global(.slider-label) {
+		font-size: 14px;
+	}
+	
+	:global(#familySlider) {
+		width: 200px;
+		height: 6px;
 	}
 </style>
-
-<h1 style="text-align: center; color: #1f2937; margin-bottom: 10px;">
-	Family Decision Making Complexity
-</h1>
-
-<div class="section-title">Exponential Growth: Decision Scenarios</div>
 
 <ExponentialVisualization 
 	bind:familySize 
 	bind:scenarioDisplay 
 	bind:formulaDisplay 
-	showFullText={true} 
+	showFullText={false} 
 />

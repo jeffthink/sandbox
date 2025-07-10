@@ -1,17 +1,5 @@
 <script>
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	
-	// Embed mode is passed as data from the layout load function
-	export let data;
-	let isEmbedMode = data.isEmbedMode;
-	
-	onMount(() => {
-		// Apply embed mode class to body
-		if (isEmbedMode) {
-			document.body.classList.add('embed-mode');
-		}
-	});
 </script>
 
 <style>
@@ -23,46 +11,6 @@
 		background: #f8fafc;
 	}
 	
-	/* Embed mode styles */
-	:global(body.embed-mode) {
-		margin: 0;
-		padding: 10px;
-		background: white;
-		min-height: 100vh;
-		max-width: 100%;
-	}
-	
-	:global(body.embed-mode .widget-container) {
-		padding: 20px;
-		box-shadow: none;
-		border-radius: 0;
-	}
-	
-	:global(body.embed-mode .family-size) {
-		font-size: 18px;
-	}
-	
-	:global(body.embed-mode .slider-label) {
-		font-size: 14px;
-	}
-	
-	:global(body.embed-mode #familySlider) {
-		width: 200px;
-		height: 6px;
-	}
-	
-	:global(body.embed-mode .nav-header) {
-		display: none;
-	}
-	
-	:global(body.embed-mode h1) {
-		font-size: 20px !important;
-		margin-bottom: 20px !important;
-	}
-	
-	:global(body.embed-mode .section-title) {
-		font-size: 16px;
-	}
 	
 	@media (max-width: 768px) {
 		:global(body) {
@@ -111,7 +59,7 @@
 	}
 </style>
 
-{#if !isEmbedMode && $page.url.pathname !== '/'}
+{#if $page.url.pathname !== '/' && !$page.url.pathname.includes('-embed')}
 	<div class="nav-header">
 		<div class="nav-content">
 			<a href="/" class="nav-link">Back to All Experiments</a>
@@ -120,5 +68,5 @@
 {/if}
 
 <div class="widget-container">
-	<slot {isEmbedMode} />
+	<slot />
 </div>

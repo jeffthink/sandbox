@@ -4,46 +4,102 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Context
 
-This is a scratch pad repository for HTML experiments and interactive visualizations. Each experiment is a standalone HTML file with embedded CSS and JavaScript.
+This is an interactive sandbox for data visualizations and experiments built with SvelteKit and D3.js. The project focuses on creating reusable, interactive visualization components that can be embedded in other sites.
 
 ## Development Workflow
 
 ### Adding New Experiments
 When creating new experiments:
-1. Create a new folder for the experiment (e.g., `my-experiment/`)
-2. Create a standalone HTML file with embedded CSS and JavaScript
-3. Use CDN links for external libraries (D3.js, etc.)
-4. Add an entry to `index.html` with a description card
+1. Create a visualization component in `src/lib/components/visualizations/`
+2. Create the main route in `src/routes/experiment-name/+page.svelte`
+3. Create an embed route in `src/routes/experiment-name-embed/+page.svelte`
+4. Add an entry to the home page (`src/routes/+page.svelte`)
 5. Update `README.md` with experiment details
 
 ### Code Style
-- Keep experiments as single HTML files when possible
-- Embed CSS in `<style>` tags
-- Embed JavaScript in `<script>` tags
-- Use semantic HTML structure
+- Use SvelteKit conventions and best practices
+- Keep visualization logic in reusable components
+- Use D3.js for data manipulation and visualization
 - Follow responsive design principles
+- Separate concerns: routes handle page structure, components handle visualization logic
 
 ### Testing
-- Test in multiple browsers
-- Ensure experiments work without a server (file:// protocol)
-- Use `npm start` for live development with auto-reload
+- Test in development with `npm run dev`
+- Build and preview production with `npm run build && npm run preview`
+- Ensure visualizations work on both desktop and mobile
+- Test embed routes in iframes
 
 ## Common Patterns
 
+### Component Structure
+```svelte
+<!-- Visualization Component -->
+<script>
+  import * as d3 from 'd3';
+  import { onMount } from 'svelte';
+  
+  export let data;
+  let svgElement;
+  
+  $: if (svgElement && !svg) {
+    setupVisualization();
+  }
+</script>
+```
+
+### Route Structure
+```svelte
+<!-- Full Page Route -->
+<script>
+  import VisualizationComponent from '$lib/components/visualizations/...';
+</script>
+
+<!-- Embed Route -->
+<script>
+  import VisualizationComponent from '$lib/components/visualizations/...';
+</script>
+<style>
+  /* Minimal embed styles */
+</style>
+```
+
 ### Libraries Used
-- **D3.js** - Primary visualization library, loaded via CDN
-- **Vanilla JS** - No framework dependencies
-- **CSS Grid/Flexbox** - For responsive layouts
+- **SvelteKit** - Web framework with SSG support
+- **D3.js** - Data visualization library
+- **Vite** - Build tool and dev server
 
 ### File Organization
 ```
-experiment-name/
-└── experiment-name.html    # Self-contained experiment
+src/
+├── routes/
+│   ├── experiment/+page.svelte      # Full page version
+│   └── experiment-embed/+page.svelte # Embed version
+└── lib/
+    └── components/
+        └── visualizations/
+            └── ExperimentViz.svelte # Reusable component
 ```
 
 ## Development Commands
 
 ```bash
-npm start          # Start live-server, opens index.html
-npm run serve      # Same as npm start
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run preview    # Preview production build
+npm run deploy     # Deploy to Vercel
 ```
+
+## Important Conventions
+
+1. **Separate Embed Routes**: Use `-embed` suffix for embed-friendly versions
+2. **Reusable Components**: Keep visualization logic in components, not routes
+3. **D3 Integration**: Initialize D3 in reactive statements or onMount
+4. **Responsive Design**: Ensure visualizations work at all screen sizes
+5. **Clean Separation**: Routes handle layout/structure, components handle visualization
+
+## Deployment
+
+The project is configured for Vercel deployment with:
+- Static site generation
+- Proper headers for iframe embedding
+- Clean URLs

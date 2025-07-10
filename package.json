@@ -6,11 +6,9 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "serve": "npm run preview",
     "start": "npm run dev",
     "deploy": "vercel --prod",
-    "deploy-preview": "vercel",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy-preview": "vercel"
   },
   "keywords": [
     "html",
@@ -20,7 +18,7 @@
   ],
   "author": "",
   "license": "ISC",
-  "description": "A scratch pad repository for HTML experiments and interactive visualizations",
+  "description": "An interactive sandbox for data visualizations and experiments built with SvelteKit and D3.js",
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",

@@ -13,8 +13,8 @@
 	$: CONFIG = {
 		member: {
 			radius: 20,
-			circleRadius: 80,
-			padding: 20
+			circleRadius: 160,  // Doubled from 80
+			padding: 40         // Doubled from 20
 		},
 		relationships: {
 			textOffsetX: 50,
@@ -58,6 +58,16 @@
 	
 	// Function to assign random emotions to family members
 	function assignEmotions(count) {
+		// Hardcoded for screenshot when familySize is 4
+		if (count === 4) {
+			return [
+				{ emotion: 'happy', emoji: '😊' },    // Top
+				{ emotion: 'neutral', emoji: '😐' },  // Right
+				{ emotion: 'upset', emoji: '😡' },    // Bottom
+				{ emotion: 'neutral', emoji: '🤔' }   // Left
+			];
+		}
+		
 		const emotions = [];
 		for (let i = 0; i < count; i++) {
 			const rand = Math.random();
@@ -138,7 +148,36 @@
 			for (let j = i + 1; j < positions.length; j++) {
 				const midX = (positions[i].x + positions[j].x) / 2;
 				const midY = (positions[i].y + positions[j].y) / 2;
-				const relationship = getRandomRelationshipSymbol();
+				
+				let relationship;
+				// Hardcoded for screenshot when familySize is 4
+				if (positions.length === 4) {
+					// Specific relationships for screenshot
+					// Connections: 0-1, 0-2, 0-3, 1-2, 1-3, 2-3
+					const connectionKey = `${i}-${j}`;
+					
+					if (connectionKey === '0-1') {
+						// Happy (top) to neutral (right) - pink heart
+						relationship = { symbol: '💗', type: 'positive' };
+					} else if (connectionKey === '0-2') {
+						// Happy (top) to upset (bottom)
+						relationship = { symbol: '💕', type: 'positive' };
+					} else if (connectionKey === '0-3') {
+						// Happy (top) to thinking (left) - negative from thinking
+						relationship = { symbol: '⚡', type: 'negative' };
+					} else if (connectionKey === '1-2') {
+						// Neutral (right) to upset (bottom) - negative from upset
+						relationship = { symbol: '💢', type: 'negative' };
+					} else if (connectionKey === '1-3') {
+						// Neutral (right) to thinking (left)
+						relationship = { symbol: '❤️', type: 'positive' };
+					} else if (connectionKey === '2-3') {
+						// Upset (bottom) to thinking (left) - negative from upset
+						relationship = { symbol: '🔥', type: 'negative' };
+					}
+				} else {
+					relationship = getRandomRelationshipSymbol();
+				}
 				
 				connections.push({
 					source: positions[i],
@@ -318,7 +357,7 @@
 	
 	:global(.connection-line) {
 		stroke: #10b981;
-		stroke-width: 2;
+		stroke-width: 4;  /* Doubled from 2 */
 		opacity: 0.7;
 	}
 	
@@ -327,13 +366,13 @@
 	}
 	
 	:global(.member-face) {
-		font-size: 24px;
+		font-size: 48px;  /* Doubled from 24px */
 		text-anchor: middle;
 		dominant-baseline: middle;
 	}
 	
 	:global(.relationship-symbol) {
-		font-size: 14px;
+		font-size: 28px;  /* Doubled from 14px */
 		text-anchor: middle;
 		dominant-baseline: middle;
 	}

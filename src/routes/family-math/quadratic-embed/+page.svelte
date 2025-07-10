@@ -15,7 +15,6 @@
 		margin: 0;
 		padding: 10px;
 		background: white;
-		min-height: 100vh;
 		max-width: 100%;
 	}
 </style>

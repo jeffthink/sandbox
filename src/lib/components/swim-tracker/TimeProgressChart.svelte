@@ -16,12 +16,23 @@
 	
 	// Extract unique swimmers and events
 	$: swimmers = data?.filters?.swimmers || [];
-	$: events = data?.filters?.events || [];
+	$: allEvents = data?.filters?.events || [];
 	$: swimmerEventHistory = data?.swimmerEventHistory || new Map();
 	
-	// Initialize with first swimmer if available
+	// Filter events to only show those with multiple race results (for progress tracking)
+	$: events = allEvents.filter(event => {
+		// Check if any swimmer has multiple races in this event
+		return swimmers.some(swimmer => {
+			const key = `${swimmer}-${event}`;
+			const races = swimmerEventHistory.get(key) || [];
+			const validRaces = races.filter(race => race.standardizedTimeInSeconds && !race.isDQ);
+			return validRaces.length > 1;
+		});
+	});
+	
+	// Initialize with all swimmers if available
 	$: if (swimmers.length > 0 && selectedSwimmers.length === 0) {
-		selectedSwimmers = [swimmers[0]];
+		selectedSwimmers = [...swimmers];
 	}
 	
 	// Initialize with first event if available

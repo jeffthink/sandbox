@@ -254,6 +254,10 @@
 	}
 	
 	@media (max-width: 768px) {
+		.container {
+			padding: 0.5rem;
+		}
+		
 		.swimmers-grid {
 			grid-template-columns: 1fr;
 			gap: 1.5rem;
@@ -263,8 +267,16 @@
 			padding: 1.5rem;
 		}
 		
+		.header {
+			margin-bottom: 1.5rem;
+		}
+		
 		.header h1 {
 			font-size: 2rem;
+		}
+		
+		.header p {
+			font-size: 1rem;
 		}
 		
 		.swimmer-name {
@@ -273,6 +285,58 @@
 		
 		.stat-value {
 			font-size: 2rem;
+		}
+		
+		.stat-section {
+			margin-bottom: 1rem;
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.container {
+			padding: 0.25rem;
+		}
+		
+		.swimmers-grid {
+			gap: 1rem;
+		}
+		
+		.swimmer-card {
+			padding: 1rem;
+		}
+		
+		.header h1 {
+			font-size: 1.75rem;
+		}
+		
+		.header p {
+			font-size: 0.9rem;
+		}
+		
+		.swimmer-name {
+			font-size: 1.25rem;
+			margin-bottom: 1rem;
+		}
+		
+		.stat-value {
+			font-size: 1.75rem;
+		}
+		
+		.stat-header {
+			font-size: 1rem;
+		}
+		
+		.event-badge {
+			font-size: 0.75rem;
+			padding: 0.25rem 0.6rem;
+		}
+		
+		.biggest-drop {
+			font-size: 1rem;
+		}
+		
+		.drop-time {
+			font-size: 1.5rem;
 		}
 	}
 </style>

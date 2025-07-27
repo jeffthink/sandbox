@@ -9,6 +9,7 @@
 	let containerElement;
 	let width = 800;
 	let height = 400;
+	let isMobile = false;
 	
 	// Filter controls
 	let selectedSwimmers = [];
@@ -77,6 +78,8 @@
 		const handleResize = () => {
 			if (containerElement) {
 				width = containerElement.clientWidth;
+				isMobile = width < 768;
+				height = isMobile ? 300 : 400;
 				drawChart();
 			}
 		};
@@ -90,7 +93,10 @@
 	function drawChart() {
 		if (!svgElement || chartData.length === 0) return;
 		
-		const margin = { top: 20, right: 100, bottom: 50, left: 70 };
+		// Responsive margins
+		const margin = isMobile ? 
+			{ top: 15, right: 20, bottom: 40, left: 50 } :
+			{ top: 20, right: 100, bottom: 50, left: 70 };
 		const innerWidth = width - margin.left - margin.right;
 		const innerHeight = height - margin.top - margin.bottom;
 		
@@ -123,7 +129,10 @@
 		// Add axes
 		g.append('g')
 			.attr('transform', `translate(0,${innerHeight})`)
-			.call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b %d')))
+			.call(d3.axisBottom(xScale)
+				.ticks(isMobile ? 3 : 6)
+				.tickFormat(d3.timeFormat(isMobile ? '%m/%d' : '%b %d'))
+			)
 			.append('text')
 			.attr('x', innerWidth / 2)
 			.attr('y', 40)
@@ -207,30 +216,56 @@
 			});
 		});
 		
-		// Add legend
-		const legend = svg.append('g')
-			.attr('transform', `translate(${width - margin.right + 10}, ${margin.top})`);
-		
-		chartData.forEach((swimmerData, i) => {
-			const color = colorScale(i);
+		// Add legend (mobile-friendly positioning)
+		if (!isMobile) {
+			const legend = svg.append('g')
+				.attr('transform', `translate(${width - margin.right + 10}, ${margin.top})`);
 			
-			const legendItem = legend.append('g')
-				.attr('transform', `translate(0, ${i * 20})`);
+			chartData.forEach((swimmerData, i) => {
+				const color = colorScale(i);
+				
+				const legendItem = legend.append('g')
+					.attr('transform', `translate(0, ${i * 20})`);
+				
+				legendItem.append('line')
+					.attr('x1', 0)
+					.attr('x2', 15)
+					.attr('y1', 0)
+					.attr('y2', 0)
+					.attr('stroke', color)
+					.attr('stroke-width', 2);
+				
+				legendItem.append('text')
+					.attr('x', 20)
+					.attr('y', 4)
+					.style('font-size', '12px')
+					.text(swimmerData.swimmer);
+			});
+		} else {
+			// Mobile legend below chart
+			const legend = svg.append('g')
+				.attr('transform', `translate(${margin.left}, ${height - 15})`);
 			
-			legendItem.append('line')
-				.attr('x1', 0)
-				.attr('x2', 15)
-				.attr('y1', 0)
-				.attr('y2', 0)
-				.attr('stroke', color)
-				.attr('stroke-width', 2);
-			
-			legendItem.append('text')
-				.attr('x', 20)
-				.attr('y', 4)
-				.style('font-size', '12px')
-				.text(swimmerData.swimmer);
-		});
+			chartData.forEach((swimmerData, i) => {
+				const color = colorScale(i);
+				const legendSpacing = Math.min(80, innerWidth / chartData.length);
+				
+				const legendItem = legend.append('g')
+					.attr('transform', `translate(${i * legendSpacing}, 0)`);
+				
+				legendItem.append('circle')
+					.attr('cx', 5)
+					.attr('cy', 0)
+					.attr('r', 4)
+					.attr('fill', color);
+				
+				legendItem.append('text')
+					.attr('x', 12)
+					.attr('y', 4)
+					.style('font-size', '10px')
+					.text(swimmerData.swimmer);
+			});
+		}
 	}
 	
 	function toggleSwimmer(swimmer) {
@@ -319,6 +354,49 @@
 	
 	:global(.tooltip) {
 		z-index: 1000;
+	}
+	
+	@media (max-width: 768px) {
+		.controls {
+			flex-direction: column;
+			gap: 1rem;
+		}
+		
+		.control-group {
+			width: 100%;
+		}
+		
+		.event-select {
+			min-width: 100%;
+			width: 100%;
+		}
+		
+		.swimmer-checkboxes {
+			max-height: 150px;
+		}
+		
+		.chart-container {
+			padding: 0.5rem;
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.controls {
+			gap: 0.75rem;
+		}
+		
+		.control-group label {
+			font-size: 0.8rem;
+		}
+		
+		.event-select {
+			padding: 0.4rem;
+			font-size: 0.8rem;
+		}
+		
+		.swimmer-checkbox label {
+			font-size: 0.8rem;
+		}
 	}
 </style>
 

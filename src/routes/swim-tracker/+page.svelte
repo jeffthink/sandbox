@@ -55,6 +55,12 @@
 		padding: 2rem;
 	}
 	
+	@media (max-width: 768px) {
+		.container {
+			padding: 1rem;
+		}
+	}
+	
 	.header {
 		margin-bottom: 2rem;
 	}
@@ -74,6 +80,8 @@
 		margin-bottom: 2rem;
 		border-bottom: 2px solid #ecf0f1;
 		padding-bottom: 0;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 	
 	.nav-tab {
@@ -86,6 +94,8 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 		margin-bottom: -2px;
+		white-space: nowrap;
+		flex-shrink: 0;
 	}
 	
 	.nav-tab:hover {
@@ -103,6 +113,38 @@
 		padding: 2rem;
 		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 		min-height: 400px;
+	}
+	
+	@media (max-width: 768px) {
+		.content {
+			padding: 1rem;
+			border-radius: 4px;
+		}
+		
+		.nav-tabs {
+			gap: 0.5rem;
+			margin-bottom: 1rem;
+		}
+		
+		.nav-tab {
+			padding: 0.5rem 1rem;
+			font-size: 0.875rem;
+		}
+		
+		.header {
+			margin-bottom: 1rem;
+		}
+		
+		.header h1 {
+			font-size: 1.5rem;
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.nav-tab {
+			padding: 0.5rem 0.75rem;
+			font-size: 0.8rem;
+		}
 	}
 	
 	.loading {

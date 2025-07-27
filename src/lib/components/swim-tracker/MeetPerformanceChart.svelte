@@ -125,14 +125,67 @@
 	@media (max-width: 768px) {
 		.summary {
 			grid-template-columns: 1fr 1fr;
+			gap: 0.75rem;
+			margin-bottom: 1rem;
+		}
+		
+		.stat-card {
+			padding: 0.75rem;
+		}
+		
+		.stat-label {
+			font-size: 0.75rem;
+		}
+		
+		.stat-value {
+			font-size: 1.25rem;
 		}
 		
 		table {
-			font-size: 0.8rem;
+			font-size: 0.75rem;
 		}
 		
 		th, td {
+			padding: 0.5rem 0.25rem;
+		}
+		
+		th {
+			font-size: 0.7rem;
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.summary {
+			grid-template-columns: 1fr;
+			gap: 0.5rem;
+		}
+		
+		.stat-card {
 			padding: 0.5rem;
+		}
+		
+		.stat-label {
+			font-size: 0.7rem;
+		}
+		
+		.stat-value {
+			font-size: 1.1rem;
+		}
+		
+		table {
+			font-size: 0.7rem;
+		}
+		
+		th, td {
+			padding: 0.4rem 0.2rem;
+		}
+		
+		th {
+			font-size: 0.65rem;
+		}
+		
+		.points {
+			font-size: 0.65rem;
 		}
 	}
 </style>

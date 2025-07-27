@@ -272,20 +272,91 @@
 	@media (max-width: 768px) {
 		.filters {
 			flex-direction: column;
+			padding: 0.75rem;
+			gap: 0.75rem;
+		}
+		
+		.filter-group {
+			width: 100%;
 		}
 		
 		.filter-group select,
 		.filter-group input {
 			width: 100%;
+			min-width: auto;
 		}
 		
 		.filter-actions {
 			margin-left: 0;
 			width: 100%;
+			align-items: stretch;
+		}
+		
+		.toggle-group {
+			margin-bottom: 0.5rem;
 		}
 		
 		.btn {
 			flex: 1;
+		}
+		
+		.table-container {
+			font-size: 0.75rem;
+		}
+		
+		th, td {
+			padding: 0.5rem 0.25rem;
+		}
+		
+		th {
+			font-size: 0.7rem;
+		}
+		
+		.pr-badge {
+			font-size: 0.65rem;
+			padding: 0.1rem 0.3rem;
+		}
+		
+		.converted-indicator {
+			font-size: 0.65rem;
+		}
+		
+		.summary {
+			font-size: 0.8rem;
+			margin-bottom: 0.5rem;
+		}
+	}
+	
+	@media (max-width: 480px) {
+		.filters {
+			padding: 0.5rem;
+		}
+		
+		.filter-group label {
+			font-size: 0.8rem;
+		}
+		
+		.filter-group select,
+		.filter-group input {
+			font-size: 0.8rem;
+			padding: 0.4rem;
+		}
+		
+		.table-container {
+			font-size: 0.7rem;
+		}
+		
+		th, td {
+			padding: 0.4rem 0.2rem;
+		}
+		
+		th {
+			font-size: 0.65rem;
+		}
+		
+		.btn {
+			font-size: 0.8rem;
+			padding: 0.4rem 0.8rem;
 		}
 	}
 </style>

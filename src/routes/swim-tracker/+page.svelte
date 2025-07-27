@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import SummerSummary from '$lib/components/swim-tracker/SummerSummary.svelte';
 	import RacesTable from '$lib/components/swim-tracker/RacesTable.svelte';
 	import TimeProgressChart from '$lib/components/swim-tracker/TimeProgressChart.svelte';
 	import MeetPerformanceChart from '$lib/components/swim-tracker/MeetPerformanceChart.svelte';
@@ -13,7 +14,7 @@
 	let processedData = null;
 	
 	// View state
-	let activeView = 'table'; // 'table', 'progress', 'meets'
+	let activeView = 'summary'; // 'summary', 'table', 'progress', 'meets'
 	
 	onMount(async () => {
 		try {
@@ -173,24 +174,31 @@
 	<div class="nav-tabs">
 		<button 
 			class="nav-tab" 
+			class:active={activeView === 'summary'}
+			on:click={() => activeView = 'summary'}
+		>
+			🏆 Summer Highlights
+		</button>
+		<button 
+			class="nav-tab" 
 			class:active={activeView === 'table'}
 			on:click={() => activeView = 'table'}
 		>
-			Race Results
+			📊 Race Results
 		</button>
 		<button 
 			class="nav-tab" 
 			class:active={activeView === 'progress'}
 			on:click={() => activeView = 'progress'}
 		>
-			Time Progress
+			📈 Time Progress
 		</button>
 		<button 
 			class="nav-tab" 
 			class:active={activeView === 'meets'}
 			on:click={() => activeView = 'meets'}
 		>
-			Meet Performance
+			📅 Meet Performance
 		</button>
 	</div>
 	
@@ -200,7 +208,9 @@
 				Loading swim data...
 			</div>
 		{:else if processedData}
-			{#if activeView === 'table'}
+			{#if activeView === 'summary'}
+				<SummerSummary data={processedData} />
+			{:else if activeView === 'table'}
 				<RacesTable data={processedData} />
 			{:else if activeView === 'progress'}
 				<TimeProgressChart data={processedData} />

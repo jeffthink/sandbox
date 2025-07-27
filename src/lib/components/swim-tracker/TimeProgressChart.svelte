@@ -41,14 +41,16 @@
 			
 			return {
 				swimmer,
-				races: races.map(race => ({
-					date: race.date,
-					time: race.timeInSeconds,
-					formattedTime: race.formattedTime,
-					meet: race.meet.MeetName,
-					place: race.Place,
-					isPersonalRecord: race.isPersonalRecord
-				}))
+				races: races
+					.filter(race => race.timeInSeconds && !race.isDQ) // Exclude DQs from charts
+					.map(race => ({
+						date: race.date,
+						time: race.timeInSeconds,
+						formattedTime: race.formattedTime,
+						meet: race.meet.MeetName,
+						place: race.Place,
+						isPersonalRecord: race.isPersonalRecord
+					}))
 			};
 		}).filter(d => d.races.length > 0);
 	}

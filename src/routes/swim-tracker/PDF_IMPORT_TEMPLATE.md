@@ -31,7 +31,7 @@ RACES CSV:
 2024-06-15-1-jd,2024-06-15-summer-dual,John Doe,1,8 & Under,25,Freestyle,18.45,2,8
 2024-06-15-3-jd,2024-06-15-summer-dual,John Doe,3,8 & Under,25,Backstroke,22.13,1,6
 
-For disqualified swims, put 'DQ' in the Time column.
+For disqualified swims, put 'DQ' in the Time and Place columns.
 
 Be sure to include Relays, as long as they have one of the 3 swimmers mentioned above.
 

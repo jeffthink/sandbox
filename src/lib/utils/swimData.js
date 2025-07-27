@@ -4,24 +4,43 @@
 
 /**
  * Converts time string (MM:SS.SS or SS.SS) to total seconds
- * @param {string} timeStr - Time in format "1:23.45" or "23.45"
- * @returns {number} Total seconds
+ * @param {string} timeStr - Time in format "1:23.45" or "23.45", or "DQ" for disqualification
+ * @returns {number|null} Total seconds, or null for DQ or invalid times
  */
 export function parseTimeToSeconds(timeStr) {
 	if (!timeStr) return null;
 	
-	const parts = timeStr.toString().split(':');
+	// Handle disqualifications
+	const timeString = timeStr.toString().trim().toUpperCase();
+	if (timeString === 'DQ' || timeString === 'DISQUALIFIED') {
+		return null;
+	}
+	
+	const parts = timeString.split(':');
 	if (parts.length === 1) {
 		// Format: SS.SS
-		return parseFloat(parts[0]);
+		const seconds = parseFloat(parts[0]);
+		return isNaN(seconds) ? null : seconds;
 	} else if (parts.length === 2) {
 		// Format: MM:SS.SS
 		const minutes = parseInt(parts[0]);
 		const seconds = parseFloat(parts[1]);
+		if (isNaN(minutes) || isNaN(seconds)) return null;
 		return minutes * 60 + seconds;
 	}
 	
 	return null;
+}
+
+/**
+ * Checks if a time string represents a disqualification
+ * @param {string} timeStr - Time string to check
+ * @returns {boolean} True if the time is a DQ
+ */
+export function isDisqualified(timeStr) {
+	if (!timeStr) return false;
+	const timeString = timeStr.toString().trim().toUpperCase();
+	return timeString === 'DQ' || timeString === 'DISQUALIFIED';
 }
 
 /**
@@ -74,13 +93,15 @@ export function processSwimData(meets, races) {
 	const processedRaces = races.map(race => {
 		const meet = meetsMap.get(race.MeetId);
 		const timeInSeconds = parseTimeToSeconds(race.Time);
+		const isDQ = isDisqualified(race.Time);
 		
 		return {
 			...race,
 			meet,
 			timeInSeconds,
-			formattedTime: formatTime(timeInSeconds),
-			Place: parseInt(race.Place) || null,
+			formattedTime: isDQ ? 'DQ' : formatTime(timeInSeconds),
+			isDQ,
+			Place: isDQ || isDisqualified(race.Place) ? 'DQ' : (parseInt(race.Place) || null),
 			NumSwimmers: parseInt(race.NumSwimmers) || null,
 			EventNumber: parseInt(race.EventNumber) || null,
 			eventKey: getEventKey(race),
@@ -96,35 +117,42 @@ export function processSwimData(meets, races) {
 	const swimmerEventHistory = new Map();
 	
 	processedRaces.forEach(race => {
-		if (!race.timeInSeconds) return;
-		
 		const key = `${race.Swimmer}-${race.eventKey}`;
 		
-		// Track history
+		// Track history for all races (including DQs)
 		if (!swimmerEventHistory.has(key)) {
 			swimmerEventHistory.set(key, []);
 		}
 		const history = swimmerEventHistory.get(key);
 		
-		// Calculate improvement from previous race
-		if (history.length > 0) {
-			const previousRace = history[history.length - 1];
-			race.improvementSeconds = previousRace.timeInSeconds - race.timeInSeconds;
-			race.improvementPercent = (race.improvementSeconds / previousRace.timeInSeconds) * 100;
+		// Only calculate improvements and PRs for valid times (not DQs)
+		if (race.timeInSeconds && !race.isDQ) {
+			// Calculate improvement from previous valid race
+			const previousValidRaces = history.filter(r => r.timeInSeconds && !r.isDQ);
+			if (previousValidRaces.length > 0) {
+				const previousRace = previousValidRaces[previousValidRaces.length - 1];
+				race.improvementSeconds = previousRace.timeInSeconds - race.timeInSeconds;
+				race.improvementPercent = (race.improvementSeconds / previousRace.timeInSeconds) * 100;
+			} else {
+				race.improvementSeconds = null;
+				race.improvementPercent = null;
+			}
+			
+			// Track PRs (only for valid times)
+			if (!swimmerEventPRs.has(key) || race.timeInSeconds < swimmerEventPRs.get(key).timeInSeconds) {
+				swimmerEventPRs.set(key, race);
+				race.isPersonalRecord = true;
+			} else {
+				race.isPersonalRecord = false;
+			}
 		} else {
+			// DQs don't have improvements or PRs
 			race.improvementSeconds = null;
 			race.improvementPercent = null;
+			race.isPersonalRecord = false;
 		}
 		
 		history.push(race);
-		
-		// Track PRs
-		if (!swimmerEventPRs.has(key) || race.timeInSeconds < swimmerEventPRs.get(key).timeInSeconds) {
-			swimmerEventPRs.set(key, race);
-			race.isPersonalRecord = true;
-		} else {
-			race.isPersonalRecord = false;
-		}
 	});
 	
 	// Get unique values for filters

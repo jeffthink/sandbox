@@ -1,5 +1,5 @@
 <script>
-	import { filterRaces, formatTime } from '$lib/utils/swimData.js';
+	import { filterRaces, formatTime, isDisqualified } from '$lib/utils/swimData.js';
 	
 	export let data;
 	
@@ -256,6 +256,12 @@
 		margin-left: 0.5rem;
 	}
 	
+	.dq {
+		color: #dc3545;
+		font-weight: 600;
+		font-style: italic;
+	}
+	
 	.no-data {
 		text-align: center;
 		padding: 3rem;
@@ -418,9 +424,17 @@
 								<span class="pr-badge">PR</span>
 							{/if}
 						</td>
-						<td>{race.formattedTime}</td>
 						<td>
-							{#if race.Place}
+							{#if race.isDQ}
+								<span class="dq">DQ</span>
+							{:else}
+								{race.formattedTime}
+							{/if}
+						</td>
+						<td>
+							{#if race.isDQ}
+								<span class="dq">DQ</span>
+							{:else if race.Place}
 								<span 
 									class="place"
 									class:place-1={race.Place === 1}

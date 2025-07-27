@@ -28,7 +28,7 @@
 			
 			eventTypes.forEach(eventKey => {
 				const eventRaces = swimmerRaces
-					.filter(race => race.eventKey === eventKey && race.standardizedTimeInSeconds)
+					.filter(race => race.eventKey === eventKey && race.standardizedTimeInSeconds && !race.eventKey.toLowerCase().includes('relay'))
 					.sort((a, b) => a.date - b.date);
 				
 				if (eventRaces.length >= 2) {

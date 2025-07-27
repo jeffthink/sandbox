@@ -29,6 +29,31 @@
 			const validRaces = races.filter(race => race.standardizedTimeInSeconds && !race.isDQ);
 			return validRaces.length > 1;
 		});
+	}).sort((a, b) => {
+		// Extract distance from event name (e.g., "50 Freestyle" -> 50)
+		const getDistance = (event) => {
+			const match = event.match(/^(\d+)/);
+			return match ? parseInt(match[1]) : 999; // Put non-distance events at end
+		};
+		
+		// Extract stroke from event name (everything after the distance)
+		const getStroke = (event) => {
+			const match = event.match(/^\d+\s+(.+)/);
+			return match ? match[1].toLowerCase() : event.toLowerCase();
+		};
+		
+		const distanceA = getDistance(a);
+		const distanceB = getDistance(b);
+		
+		// First sort by distance
+		if (distanceA !== distanceB) {
+			return distanceA - distanceB;
+		}
+		
+		// If same distance, sort alphabetically by stroke
+		const strokeA = getStroke(a);
+		const strokeB = getStroke(b);
+		return strokeA.localeCompare(strokeB);
 	});
 	
 	// Initialize with all swimmers if available

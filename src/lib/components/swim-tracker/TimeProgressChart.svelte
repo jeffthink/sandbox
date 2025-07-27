@@ -42,14 +42,15 @@
 			return {
 				swimmer,
 				races: races
-					.filter(race => race.timeInSeconds && !race.isDQ) // Exclude DQs from charts
+					.filter(race => race.standardizedTimeInSeconds && !race.isDQ) // Exclude DQs from charts
 					.map(race => ({
 						date: race.date,
-						time: race.timeInSeconds,
-						formattedTime: race.formattedTime,
+						time: race.standardizedTimeInSeconds, // Use standardized times for fair comparison
+						formattedTime: race.isTimeConverted ? race.formattedStandardizedTime : race.formattedTime,
 						meet: race.meet.MeetName,
 						place: race.Place,
-						isPersonalRecord: race.isPersonalRecord
+						isPersonalRecord: race.isPersonalRecord,
+						isConverted: race.isTimeConverted
 					}))
 			};
 		}).filter(d => d.races.length > 0);
@@ -182,7 +183,7 @@
 				
 				tooltip.html(`
 					<strong>${swimmerData.swimmer}</strong><br>
-					Time: ${d.formattedTime}${d.isPersonalRecord ? ' (PR)' : ''}<br>
+					Time: ${d.formattedTime}${d.isPersonalRecord ? ' (PR)' : ''}${d.isConverted ? ' (converted)' : ''}<br>
 					Place: ${d.place || 'N/A'}<br>
 					Meet: ${d.meet}<br>
 					Date: ${d.date.toLocaleDateString()}

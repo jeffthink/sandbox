@@ -13,6 +13,7 @@
 	let selectedEvent = '';
 	let selectedMeet = '';
 	let searchTerm = '';
+	let showStandardizedTimes = true;
 	
 	// Sort state
 	let sortColumn = 'date';
@@ -127,9 +128,21 @@
 	
 	.filter-actions {
 		display: flex;
+		flex-direction: column;
 		align-items: flex-end;
 		gap: 0.5rem;
 		margin-left: auto;
+	}
+	
+	.toggle-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+	}
+	
+	.toggle-group input[type="checkbox"] {
+		margin: 0;
 	}
 	
 	.btn {
@@ -220,17 +233,8 @@
 		font-weight: 600;
 	}
 	
-	.place-1 {
-		color: #ffd700;
-		text-shadow: 0 0 2px rgba(0,0,0,0.3);
-	}
-	
-	.place-2 {
-		color: #c0c0c0;
-	}
-	
-	.place-3 {
-		color: #cd7f32;
+	.place.top-half {
+		color: #28a745;
 	}
 	
 	.improvement {
@@ -239,10 +243,6 @@
 	
 	.improvement.positive {
 		color: #28a745;
-	}
-	
-	.improvement.negative {
-		color: #dc3545;
 	}
 	
 	.pr-badge {
@@ -256,10 +256,11 @@
 		margin-left: 0.5rem;
 	}
 	
-	.dq {
-		color: #dc3545;
-		font-weight: 600;
+	.converted-indicator {
+		color: #6c757d;
+		font-size: 0.75rem;
 		font-style: italic;
+		margin-left: 0.25rem;
 	}
 	
 	.no-data {
@@ -341,6 +342,16 @@
 	</div>
 	
 	<div class="filter-actions">
+		<div class="toggle-group">
+			<label for="standardized-toggle">
+				<input 
+					id="standardized-toggle"
+					type="checkbox" 
+					bind:checked={showStandardizedTimes}
+				/>
+				Show standardized times (meters)
+			</label>
+		</div>
 		<button class="btn btn-reset" on:click={resetFilters}>
 			Reset Filters
 		</button>
@@ -426,22 +437,24 @@
 						</td>
 						<td>
 							{#if race.isDQ}
-								<span class="dq">DQ</span>
+								-
+							{:else if showStandardizedTimes && race.isTimeConverted}
+								{race.formattedStandardizedTime}
+								<span class="converted-indicator">(conv.)</span>
 							{:else}
 								{race.formattedTime}
 							{/if}
 						</td>
 						<td>
 							{#if race.isDQ}
-								<span class="dq">DQ</span>
+								DQ
 							{:else if race.Place}
 								<span 
 									class="place"
-									class:place-1={race.Place === 1}
-									class:place-2={race.Place === 2}
-									class:place-3={race.Place === 3}
+									class:top-half={race.Place <= Math.ceil((race.NumSwimmers || 1) / 2)}
 								>
 									{race.Place}/{race.NumSwimmers || '?'}
+									{#if race.Place <= 3}⭐{/if}
 								</span>
 							{:else}
 								-
@@ -449,14 +462,10 @@
 						</td>
 						<td>{race.meet.MeetName}</td>
 						<td>
-							{#if race.improvementSeconds !== null}
-								<span 
-									class="improvement"
-									class:positive={race.improvementSeconds > 0}
-									class:negative={race.improvementSeconds < 0}
-								>
-									{race.improvementSeconds > 0 ? '+' : ''}{formatTime(Math.abs(race.improvementSeconds))}
-									({race.improvementPercent > 0 ? '+' : ''}{race.improvementPercent.toFixed(1)}%)
+							{#if race.improvementSeconds !== null && race.improvementSeconds > 0}
+								<span class="improvement positive">
+									+{formatTime(race.improvementSeconds)}
+									(+{race.improvementPercent.toFixed(1)}%)
 								</span>
 							{:else}
 								-

@@ -70,6 +70,45 @@ export function getEventKey(race) {
 }
 
 /**
+ * Converts swimming time from yards to meters using standard conversion factor
+ * @param {number} timeInSeconds - Time in seconds for yards pool
+ * @returns {number} Converted time for meters pool
+ */
+export function convertYardsToMeters(timeInSeconds) {
+	if (!timeInSeconds || timeInSeconds <= 0) return timeInSeconds;
+	return timeInSeconds * 1.11;
+}
+
+/**
+ * Gets standardized time (converted to meters if needed)
+ * @param {Object} race - Race object with time
+ * @param {Object} meet - Meet object with pool information
+ * @returns {Object} Object with standardizedTime and isConverted flag
+ */
+export function getStandardizedTime(race, meet) {
+	if (!race.timeInSeconds || race.isDQ) {
+		return {
+			standardizedTime: race.timeInSeconds,
+			isConverted: false
+		};
+	}
+	
+	const poolUnit = meet?.PoolUnit?.toLowerCase();
+	
+	if (poolUnit === 'yards') {
+		return {
+			standardizedTime: convertYardsToMeters(race.timeInSeconds),
+			isConverted: true
+		};
+	}
+	
+	return {
+		standardizedTime: race.timeInSeconds,
+		isConverted: false
+	};
+}
+
+/**
  * Processes raw swim data from Google Sheets
  * @param {Array} meets - Array of meet objects
  * @param {Array} races - Array of race objects
@@ -95,11 +134,17 @@ export function processSwimData(meets, races) {
 		const timeInSeconds = parseTimeToSeconds(race.Time);
 		const isDQ = isDisqualified(race.Time);
 		
+		// Get standardized time (converted to meters if needed)
+		const standardizedTimeData = getStandardizedTime({ timeInSeconds, isDQ }, meet);
+		
 		return {
 			...race,
 			meet,
 			timeInSeconds,
+			standardizedTimeInSeconds: standardizedTimeData.standardizedTime,
+			isTimeConverted: standardizedTimeData.isConverted,
 			formattedTime: isDQ ? 'DQ' : formatTime(timeInSeconds),
+			formattedStandardizedTime: isDQ ? 'DQ' : formatTime(standardizedTimeData.standardizedTime),
 			isDQ,
 			Place: isDQ || isDisqualified(race.Place) ? 'DQ' : (parseInt(race.Place) || null),
 			NumSwimmers: parseInt(race.NumSwimmers) || null,
@@ -126,20 +171,20 @@ export function processSwimData(meets, races) {
 		const history = swimmerEventHistory.get(key);
 		
 		// Only calculate improvements and PRs for valid times (not DQs)
-		if (race.timeInSeconds && !race.isDQ) {
-			// Calculate improvement from previous valid race
-			const previousValidRaces = history.filter(r => r.timeInSeconds && !r.isDQ);
+		if (race.standardizedTimeInSeconds && !race.isDQ) {
+			// Calculate improvement from previous valid race using standardized times
+			const previousValidRaces = history.filter(r => r.standardizedTimeInSeconds && !r.isDQ);
 			if (previousValidRaces.length > 0) {
 				const previousRace = previousValidRaces[previousValidRaces.length - 1];
-				race.improvementSeconds = previousRace.timeInSeconds - race.timeInSeconds;
-				race.improvementPercent = (race.improvementSeconds / previousRace.timeInSeconds) * 100;
+				race.improvementSeconds = previousRace.standardizedTimeInSeconds - race.standardizedTimeInSeconds;
+				race.improvementPercent = (race.improvementSeconds / previousRace.standardizedTimeInSeconds) * 100;
 			} else {
 				race.improvementSeconds = null;
 				race.improvementPercent = null;
 			}
 			
-			// Track PRs (only for valid times)
-			if (!swimmerEventPRs.has(key) || race.timeInSeconds < swimmerEventPRs.get(key).timeInSeconds) {
+			// Track PRs using standardized times (only for valid times)
+			if (!swimmerEventPRs.has(key) || race.standardizedTimeInSeconds < swimmerEventPRs.get(key).standardizedTimeInSeconds) {
 				swimmerEventPRs.set(key, race);
 				race.isPersonalRecord = true;
 			} else {

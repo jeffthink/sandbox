@@ -242,3 +242,15 @@ export function filterRaces(races, filters) {
 		return true;
 	});
 }
+
+/**
+ * Computes the default season selection for the dashboard filter.
+ * @param {number[]} allSeasons - All years present in the data
+ * @param {number} currentYear - The current calendar year
+ * @returns {number[]} [currentYear] if it has data, else [latestYear], else []
+ */
+export function getDefaultSeasons(allSeasons, currentYear) {
+	if (!allSeasons || allSeasons.length === 0) return [];
+	if (allSeasons.includes(currentYear)) return [currentYear];
+	return [Math.max(...allSeasons)];
+}

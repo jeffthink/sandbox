@@ -41,3 +41,17 @@ describe('filterRaces by season', () => {
 		expect(filterRaces(races, {})).toHaveLength(3);
 	});
 });
+
+describe('getDefaultSeasons', () => {
+	it('returns the current year when it has data', () => {
+		expect(getDefaultSeasons([2025, 2024], 2025)).toEqual([2025]);
+	});
+
+	it('falls back to the latest year when the current year has no data', () => {
+		expect(getDefaultSeasons([2025, 2024], 2026)).toEqual([2025]);
+	});
+
+	it('returns an empty array when there are no seasons', () => {
+		expect(getDefaultSeasons([], 2026)).toEqual([]);
+	});
+});

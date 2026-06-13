@@ -1,5 +1,5 @@
 <script>
-	import { filterRaces, formatTime, isDisqualified } from '$lib/utils/swimData.js';
+	import { filterRaces, formatTime } from '$lib/utils/swimData.js';
 	
 	export let data;
 	

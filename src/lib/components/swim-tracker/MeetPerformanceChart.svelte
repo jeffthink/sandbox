@@ -128,19 +128,19 @@
 			gap: 0.75rem;
 			margin-bottom: 1rem;
 		}
-		
+
 		.stat-card {
 			padding: 0.75rem;
 		}
-		
+
 		.stat-label {
 			font-size: 0.75rem;
 		}
-		
+
 		.stat-value {
 			font-size: 1.25rem;
 		}
-		
+
 		table {
 			font-size: 0.75rem;
 		}
@@ -159,19 +159,19 @@
 			grid-template-columns: 1fr;
 			gap: 0.5rem;
 		}
-		
+
 		.stat-card {
 			padding: 0.5rem;
 		}
-		
+
 		.stat-label {
 			font-size: 0.7rem;
 		}
-		
+
 		.stat-value {
 			font-size: 1.1rem;
 		}
-		
+
 		table {
 			font-size: 0.7rem;
 		}

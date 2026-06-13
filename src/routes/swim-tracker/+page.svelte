@@ -12,36 +12,39 @@
 	let meets = [];
 	let races = [];
 	let processedData = null;
+	let swimmerEmojis = {};
 	
 	// View state
 	let activeView = 'summary'; // 'summary', 'table', 'progress', 'meets'
 	
 	onMount(async () => {
 		try {
-			// TODO: Replace with your published CSV URLs
-			// To get these URLs:
-			// 1. Open your Google Sheet
-			// 2. File → Share → Publish to web
-			// 3. Select the sheet tab and CSV format
-			// 4. Click Publish and copy the URL
-			const MEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQCC-lvLd0mo16b3q6qt6b_lE-LwCYJ4GAtFm6ezQdSrLQdjS-3rBv5LlGOAOyVvKRq2ZhUbJyGyaTY/pub?gid=3535918&single=true&output=csv';
-			const RACES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQCC-lvLd0mo16b3q6qt6b_lE-LwCYJ4GAtFm6ezQdSrLQdjS-3rBv5LlGOAOyVvKRq2ZhUbJyGyaTY/pub?gid=0&single=true&output=csv';
-			
-			// Fetch both sheets
-			const [meetsData, racesData] = await Promise.all([
+			const MEETS_CSV_URL = import.meta.env.VITE_MEETS_CSV_URL || '';
+			const RACES_CSV_URL = import.meta.env.VITE_RACES_CSV_URL || '';
+			const SWIMMERS_CSV_URL = import.meta.env.VITE_SWIMMERS_CSV_URL || '';
+
+			// Fetch sheets (Swimmers tab is optional)
+			const [meetsData, racesData, swimmersData] = await Promise.all([
 				fetchSheetCSV(MEETS_CSV_URL),
-				fetchSheetCSV(RACES_CSV_URL)
+				fetchSheetCSV(RACES_CSV_URL),
+				SWIMMERS_CSV_URL ? fetchSheetCSV(SWIMMERS_CSV_URL) : Promise.resolve([])
 			]);
-			
+
 			meets = meetsData;
 			races = racesData;
-			
+
+			// Build a name → emoji lookup from the Swimmers tab (blank emojis fall back later)
+			swimmerEmojis = Object.fromEntries(
+				swimmersData
+					.filter(s => s.Name && s.Emoji)
+					.map(s => [s.Name, s.Emoji])
+			);
+
 			// Process the data (join meets with races, calculate PRs, etc.)
 			processedData = processSwimData(meets, races);
 			
 			loading = false;
 		} catch (err) {
-			console.error('Error loading swim data:', err);
 			error = err.message;
 			loading = false;
 		}
@@ -163,25 +166,7 @@
 		margin-bottom: 1rem;
 	}
 	
-	.setup-notice {
-		background: #fff3cd;
-		border: 1px solid #ffeaa7;
-		color: #856404;
-		padding: 1rem;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-	}
-	
-	.setup-notice h3 {
-		margin: 0 0 0.5rem 0;
-	}
-	
-	.setup-notice code {
-		background: rgba(0,0,0,0.05);
-		padding: 0.2rem 0.4rem;
-		border-radius: 3px;
-		font-family: monospace;
-	}
+
 </style>
 
 <svelte:head>
@@ -197,19 +182,6 @@
 	{#if error}
 		<div class="error">
 			<strong>Error loading data:</strong> {error}
-		</div>
-	{/if}
-	
-	{#if !loading && processedData === null}
-		<div class="setup-notice">
-			<h3>Setup Required</h3>
-			<p>To use this swim tracker, you need to:</p>
-			<ol>
-				<li>Create a Google Sheet with "Meets" and "Races" tabs</li>
-				<li>Publish each tab to web as CSV format</li>
-				<li>Update the <code>MEETS_CSV_URL</code> and <code>RACES_CSV_URL</code> in this file</li>
-			</ol>
-			<p>See the <a href="/swim-tracker/README.md">README</a> for detailed instructions.</p>
 		</div>
 	{/if}
 	
@@ -251,7 +223,7 @@
 			</div>
 		{:else if processedData}
 			{#if activeView === 'summary'}
-				<SummerSummary data={processedData} />
+				<SummerSummary data={processedData} {swimmerEmojis} />
 			{:else if activeView === 'table'}
 				<RacesTable data={processedData} />
 			{:else if activeView === 'progress'}

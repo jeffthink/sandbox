@@ -5,7 +5,7 @@ A collection of interactive visualizations and experiments built with SvelteKit 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 16+ 
+- Node.js 18+
 - Modern web browser
 
 ### Installation
@@ -31,30 +31,26 @@ This will start a Vite development server on port 5173 (dev mode) or port 4173 (
 ## Project Structure
 
 ```
-interactive-sandbox/
-├── src/
-│   ├── routes/
-│   │   ├── +page.svelte                    # Main listing page
-│   │   ├── +layout.svelte                  # Shared layout with navigation
-│   │   └── family-math/
-│   │       ├── linear/+page.svelte         # Linear growth visualization
-│   │       ├── linear-embed/+page.svelte   # Embed version
-│   │       ├── quadratic/+page.svelte      # Quadratic relationships
-│   │       ├── quadratic-embed/+page.svelte
-│   │       ├── exponential/+page.svelte    # Exponential scenarios
-│   │       ├── exponential-embed/+page.svelte
-│   │       ├── factorial/+page.svelte      # Factorial arrangements
-│   │       └── factorial-embed/+page.svelte
-│   └── lib/
-│       └── components/
-│           ├── FamilySlider.svelte         # Shared slider component
-│           └── visualizations/             # Reusable visualization components
-│               ├── LinearVisualization.svelte
-│               ├── QuadraticVisualization.svelte
-│               ├── ExponentialVisualization.svelte
-│               └── FactorialVisualization.svelte
-├── build/                                  # Static build output
-└── package.json
+src/
+├── routes/
+│   ├── +page.svelte                        # Main listing page
+│   ├── +layout.svelte                      # Shared layout with navigation
+│   ├── family-math/
+│   │   ├── linear/+page.svelte             # Linear growth visualization
+│   │   ├── linear-embed/+page.svelte       # Embed version
+│   │   ├── quadratic/+page.svelte          # Quadratic relationships
+│   │   ├── quadratic-embed/+page.svelte
+│   │   ├── exponential/+page.svelte        # Exponential scenarios
+│   │   ├── exponential-embed/+page.svelte
+│   │   ├── factorial/+page.svelte          # Factorial arrangements
+│   │   └── factorial-embed/+page.svelte
+│   └── swim-tracker/+page.svelte           # Swim meet tracker
+└── lib/
+    ├── components/
+    │   ├── FamilySlider.svelte             # Shared slider component
+    │   ├── visualizations/                 # Family math visualization components
+    │   └── swim-tracker/                   # Swim tracker components
+    └── utils/                              # Data processing utilities
 ```
 
 ## Experiments
@@ -97,6 +93,15 @@ An interactive visualization showing how arrangement complexity grows factoriall
 - **Features:** Colorful avatars, randomized arrangements, smooth animations
 - **Concept:** Shows the n! formula through all possible ordering permutations
 - **Visual Elements:** Rows of colored circles representing different arrangements
+
+### Swim Times Tracker
+**Route:** `/swim-tracker`
+
+A data-driven swim meet tracker that pulls results from Google Sheets and visualizes swimmer progress over time.
+
+- **Technology:** SvelteKit + Google Sheets CSV integration
+- **Features:** Summer highlights dashboard, race results table, time progress charts, meet performance tracking
+- **Data Source:** Published Google Sheets CSV (configured via environment variables)
 
 ## Embedding Support
 
@@ -174,7 +179,7 @@ When embedding multiple visualizations on the same page, load the script once:
 - SvelteKit v2 with static adapter
 - D3.js v7.8.5 for data visualization
 - Vite for development and building
-- Pym.js for responsive iframe embedding
+- iframe-resizer v4 for responsive iframe embedding
 - TypeScript support
 
 ## Deployment

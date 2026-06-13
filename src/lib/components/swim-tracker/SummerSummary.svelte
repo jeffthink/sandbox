@@ -2,6 +2,7 @@
 	import { formatTime } from '$lib/utils/swimData.js';
 	
 	export let data;
+	export let swimmerEmojis = {};
 	
 	// Process data for summer summary
 	$: swimmerStats = calculateSwimmerStats(data);
@@ -72,12 +73,13 @@
 	}
 	
 	function getSwimmerEmoji(swimmer) {
-		const emojiMap = {
-			'Eva': '🐷',
-			'Maeve': '🐨',
-			'Quinn': '🐱'
-		};
-		return emojiMap[swimmer] || '🏊‍♀️';
+		// Prefer an emoji configured in the Swimmers sheet tab
+		if (swimmerEmojis[swimmer]) return swimmerEmojis[swimmer];
+
+		// Fall back to a stable emoji derived from the swimmer's name
+		const defaultEmojis = ['🏊‍♀️', '🐬', '🌊', '⭐', '🏅'];
+		const index = swimmer.charCodeAt(0) % defaultEmojis.length;
+		return defaultEmojis[index];
 	}
 </script>
 

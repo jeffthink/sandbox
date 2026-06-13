@@ -1,7 +1,3 @@
-<script>
-	// No data needed for home page
-</script>
-
 <svelte:head>
 	<title>Interactive Sandbox</title>
 </svelte:head>
@@ -131,5 +127,5 @@
 </div>
 
 <div class="footer">
-	<p>Built with SvelteKit and D3.js • <a href="https://github.com/jeffthink/html-scratch" style="color: inherit;">View Source</a></p>
+	<p>Built with SvelteKit and D3.js • <a href="https://github.com/jeffthink/interactive-sandbox" style="color: inherit;">View Source</a></p>
 </div>

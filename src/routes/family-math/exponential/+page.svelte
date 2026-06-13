@@ -18,7 +18,7 @@
 		margin-bottom: 15px;
 		text-align: center;
 	}
-	
+
 	@media (max-width: 768px) {
 		.section-title {
 			font-size: 18px;

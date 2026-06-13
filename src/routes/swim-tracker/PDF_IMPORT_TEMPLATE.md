@@ -11,7 +11,7 @@ I have a swim meet results PDF that I need to extract data from. Please extract 
 
 IMPORTANT INSTRUCTIONS:
 1. Use today's date in YYYY-MM-DD format for the MeetId prefix
-2. Only extract races for swimmers with the last name Bordogna. The three swimmers are Eva, Quinn, and Maeve. Our team is called City Swordfish, sometimes abbreivated as "CITY".
+2. Only extract races for swimmers on your team. Update the swimmer names and team name below to match yours.
 3. Convert time formats to SS.SS or M:SS.SS (e.g., 35.67 or 1:23.45)
 4. Use full stroke names: Freestyle, Backstroke, Breaststroke, Butterfly, IM
 5. Generate unique RaceId values using format: YYYY-MM-DD-event#-swimmer-initials
@@ -33,9 +33,9 @@ RACES CSV:
 
 For disqualified swims, put 'DQ' in the Time and Place columns.
 
-Be sure to include Relays, as long as they have one of the 3 swimmers mentioned above.
+Be sure to include Relays, as long as they have one of your swimmers.
 
-You only need to include first names as the swimmer, since we're only tracking our family (Eva, Quinn, Maeve).
+You only need to include first names as the swimmer if you're only tracking one family.
 
 After you extract the data, double check to make sure that you didn't miss any races (especially if there are multiple swimmers in one race), and double check that the data you extracted is accurate.
 
@@ -45,7 +45,7 @@ After you extract the data, double check to make sure that you didn't miss any r
 ## Step-by-Step Process
 
 1. **Copy the template prompt above**
-2. **Replace `[YOUR TEAM NAME]` with your actual team name**
+2. **Update the swimmer names and team name in the prompt**
 3. **Attach the PDF or paste the meet results text**
 4. **Review Claude's output for:**
    - Correct date format (YYYY-MM-DD)

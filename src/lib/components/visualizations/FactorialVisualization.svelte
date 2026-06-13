@@ -1,5 +1,4 @@
 <script>
-	import { onMount } from 'svelte';
 	import * as d3 from 'd3';
 	import FamilySlider from '$lib/components/FamilySlider.svelte';
 	
@@ -11,8 +10,7 @@
 	let svgElement;
 	let svg;
 	
-	// Configuration constants - using reactive statements to avoid circular references
-	$: CONFIG = {
+	const CONFIG = {
 		person: {
 			radius: 15,
 			spacing: 45,

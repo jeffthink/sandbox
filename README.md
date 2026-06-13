@@ -44,7 +44,9 @@ src/
 │   │   ├── exponential-embed/+page.svelte
 │   │   ├── factorial/+page.svelte          # Factorial arrangements
 │   │   └── factorial-embed/+page.svelte
-│   └── swim-tracker/+page.svelte           # Swim meet tracker
+│   └── swim-tracker/
+│       ├── +page.svelte                    # Public demo (synthetic data)
+│       └── family/+page.svelte             # Gated family results page
 └── lib/
     ├── components/
     │   ├── FamilySlider.svelte             # Shared slider component
@@ -95,13 +97,14 @@ An interactive visualization showing how arrangement complexity grows factoriall
 - **Visual Elements:** Rows of colored circles representing different arrangements
 
 ### Swim Times Tracker
-**Route:** `/swim-tracker`
+**Routes:** `/swim-tracker` (public demo) | `/swim-tracker/family` (gated, real data)
 
-A data-driven swim meet tracker that pulls results from Google Sheets and visualizes swimmer progress over time.
+A swim meet tracker with a public demo and a password-protected family results page.
 
 - **Technology:** SvelteKit + Google Sheets CSV integration
 - **Features:** Summer highlights dashboard, race results table, time progress charts, meet performance tracking
-- **Data Source:** Published Google Sheets CSV (configured via environment variables)
+- **Demo data:** Synthetic, fictional data bundled in `src/lib/data/demoSwimData.js` — no network calls, no password needed
+- **Family page:** Real results fetched server-side via `/api/swim-data` (a Vercel serverless function). Requires the correct `SWIM_PASSWORD`. Google Sheet CSV URLs (`MEETS_CSV_URL`, `RACES_CSV_URL`, `SWIMMERS_CSV_URL`) are kept in server-side env vars and are never shipped to the browser. See `src/routes/swim-tracker/README.md` and `.env.example` for setup instructions.
 
 ## Embedding Support
 
@@ -167,16 +170,16 @@ When embedding multiple visualizations on the same page, load the script once:
 
 ## Architecture
 
-- **SvelteKit** - Modern web framework with static site generation
+- **SvelteKit** - Modern web framework with Vercel adapter (prerendered pages + serverless functions)
 - **Component-based** - Reusable visualization components
 - **D3.js Integration** - All visualizations use D3.js for data manipulation
 - **Responsive Design** - Works on desktop and mobile devices
 - **Separate Embed Routes** - Clean separation between full and embed versions
-- **Static Build** - Outputs static HTML/CSS/JS for easy deployment
+- **Hybrid Build** - Static/prerendered pages for all visualizations; `/api/swim-data` runs as a serverless function
 
 ## Technologies Used
 
-- SvelteKit v2 with static adapter
+- SvelteKit v2 with Vercel adapter
 - D3.js v7.8.5 for data visualization
 - Vite for development and building
 - iframe-resizer v4 for responsive iframe embedding

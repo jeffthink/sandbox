@@ -2,6 +2,19 @@
 
 This guide explains how to set up and manage the swim tracker data using Google Sheets.
 
+## Demo vs. Family results
+
+- `/swim-tracker` is a **public demo** using synthetic, fictional data bundled in
+  `src/lib/data/demoSwimData.js`. It makes no network calls and needs no password.
+- `/swim-tracker/family` shows the **real** results. It is gated by a password
+  checked server-side in the `/api/swim-data` serverless function, which holds the
+  published Google Sheet CSV URLs as server-side env vars (`MEETS_CSV_URL`,
+  `RACES_CSV_URL`, `SWIMMERS_CSV_URL`) and the `SWIM_PASSWORD`. The CSV URLs are
+  never exposed to the browser.
+
+Set `MEETS_CSV_URL`, `RACES_CSV_URL`, `SWIMMERS_CSV_URL`, and `SWIM_PASSWORD` in
+your local `.env` and in the Vercel project settings.
+
 ## Google Sheets Setup
 
 ### 1. Create Your Google Sheet
@@ -51,13 +64,17 @@ For each tab (Meets and Races), do the following:
 
 ### 3. Configure the Application
 
-Update the following in `/src/routes/swim-tracker/+page.svelte`:
+The published CSV URLs and the family password are read server-side by the
+`/api/swim-data` function — they are never put in client code. Set them as
+environment variables, not in `+page.svelte`:
 
-```javascript
-// Replace these with your published CSV URLs
-const MEETS_CSV_URL = 'YOUR_MEETS_CSV_URL_HERE';
-const RACES_CSV_URL = 'YOUR_RACES_CSV_URL_HERE';
-```
+- **Locally:** copy `.env.example` to `.env` and fill in `MEETS_CSV_URL`,
+  `RACES_CSV_URL`, `SWIMMERS_CSV_URL` (optional), and `SWIM_PASSWORD`.
+- **Production:** set the same variables in the Vercel project's Environment
+  Variables (do not prefix them with `VITE_`, which would expose them to the browser).
+
+The public demo at `/swim-tracker` needs none of these — it uses the bundled
+synthetic data in `src/lib/data/demoSwimData.js`.
 
 ## Data Entry Guidelines
 

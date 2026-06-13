@@ -21,7 +21,7 @@
   "license": "ISC",
   "description": "An interactive sandbox for data visualizations and experiments built with SvelteKit and D3.js",
   "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.0",
+    "@sveltejs/adapter-vercel": "^5.10.3",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "svelte": "^5.0.0",

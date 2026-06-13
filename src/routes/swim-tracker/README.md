@@ -2,6 +2,19 @@
 
 This guide explains how to set up and manage the swim tracker data using Google Sheets.
 
+## Demo vs. Family results
+
+- `/swim-tracker` is a **public demo** using synthetic, fictional data bundled in
+  `src/lib/data/demoSwimData.js`. It makes no network calls and needs no password.
+- `/swim-tracker/family` shows the **real** results. It is gated by a password
+  checked server-side in the `/api/swim-data` serverless function, which holds the
+  published Google Sheet CSV URLs as server-side env vars (`MEETS_CSV_URL`,
+  `RACES_CSV_URL`, `SWIMMERS_CSV_URL`) and the `SWIM_PASSWORD`. The CSV URLs are
+  never exposed to the browser.
+
+Set `MEETS_CSV_URL`, `RACES_CSV_URL`, `SWIMMERS_CSV_URL`, and `SWIM_PASSWORD` in
+your local `.env` and in the Vercel project settings.
+
 ## Google Sheets Setup
 
 ### 1. Create Your Google Sheet

@@ -27,3 +27,17 @@ describe('season tagging', () => {
 		expect(filters.seasons).toEqual([2025, 2024]);
 	});
 });
+
+describe('filterRaces by season', () => {
+	it('keeps only races whose season is in the seasons array', () => {
+		const { races } = processSwimData(MEETS, RACES);
+		const filtered = filterRaces(races, { seasons: [2025] });
+		expect(filtered.map((r) => r.RaceId).sort()).toEqual(['r2', 'r3']);
+	});
+
+	it('is a no-op when seasons is empty or undefined', () => {
+		const { races } = processSwimData(MEETS, RACES);
+		expect(filterRaces(races, { seasons: [] })).toHaveLength(3);
+		expect(filterRaces(races, {})).toHaveLength(3);
+	});
+});

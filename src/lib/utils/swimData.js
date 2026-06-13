@@ -237,7 +237,8 @@ export function filterRaces(races, filters) {
 		if (filters.meet && race.meet.MeetName !== filters.meet) return false;
 		if (filters.startDate && race.date < filters.startDate) return false;
 		if (filters.endDate && race.date > filters.endDate) return false;
-		
+		if (filters.seasons && filters.seasons.length > 0 && !filters.seasons.includes(race.season)) return false;
+
 		return true;
 	});
 }

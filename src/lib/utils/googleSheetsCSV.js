@@ -1,28 +1,9 @@
 /**
- * Alternative Google Sheets integration using published CSV URLs
- * This is simpler than the API approach but has some limitations
+ * Utilities for parsing published Google Sheets CSV text into row objects.
+ * `parseCSV` is used server-side by the /api/swim-data function (see
+ * src/lib/server/swimGate.js); the published CSV URLs are held as server-side
+ * env vars and never reach the browser.
  */
-
-/**
- * Fetches and parses CSV data from a published Google Sheet
- * @param {string} publishedUrl - The published CSV URL from Google Sheets
- * @returns {Promise<Array>} Array of objects representing rows
- */
-export async function fetchSheetCSV(publishedUrl) {
-	try {
-		const response = await fetch(publishedUrl);
-		
-		if (!response.ok) {
-			throw new Error(`Failed to fetch CSV: ${response.statusText}`);
-		}
-		
-		const csvText = await response.text();
-		return parseCSV(csvText);
-	} catch (error) {
-		console.error('Error fetching CSV:', error);
-		throw error;
-	}
-}
 
 /**
  * Parses CSV text into an array of objects
@@ -93,14 +74,4 @@ function parseCSVLine(line) {
  * https://docs.google.com/spreadsheets/d/e/LONG_ID_HERE/pub?gid=0&single=true&output=csv
  * 
  * Where gid=0 is the first tab, gid=12345 is other tabs
- */
-
-/**
- * Example usage:
- * 
- * const MEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_ID/pub?gid=0&single=true&output=csv';
- * const RACES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_ID/pub?gid=12345&single=true&output=csv';
- * 
- * const meets = await fetchSheetCSV(MEETS_CSV_URL);
- * const races = await fetchSheetCSV(RACES_CSV_URL);
  */

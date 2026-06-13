@@ -150,7 +150,8 @@ export function processSwimData(meets, races) {
 			NumSwimmers: parseInt(race.NumSwimmers) || null,
 			EventNumber: parseInt(race.EventNumber) || null,
 			eventKey: getEventKey(race),
-			date: meet ? meet.Date : null
+			date: meet ? meet.Date : null,
+			season: meet ? meet.Date.getFullYear() : null
 		};
 	}).filter(race => race.meet); // Only include races with valid meets
 	
@@ -205,7 +206,8 @@ export function processSwimData(meets, races) {
 	const events = [...new Set(processedRaces.map(r => r.eventKey))].sort();
 	const meetNames = [...new Set(meets.map(m => m.MeetName))].sort();
 	const strokes = [...new Set(races.map(r => r.Stroke))].sort();
-	
+	const seasons = [...new Set(processedRaces.map(r => r.season))].sort((a, b) => b - a);
+
 	return {
 		races: processedRaces,
 		meets: Array.from(meetsMap.values()),
@@ -215,7 +217,8 @@ export function processSwimData(meets, races) {
 			swimmers,
 			events,
 			meetNames,
-			strokes
+			strokes,
+			seasons
 		}
 	};
 }

@@ -5,14 +5,18 @@
  * - Swimmers share an age group and go HEAD-TO-HEAD in shared events: same
  *   EventNumber, same meet (Marlin/Pip in 11-12; Coral/Finn in 9-10). When two
  *   of our swimmers are in the same race, the faster time gets the better place.
- *   Some events are unique to one swimmer. Event variety per swimmer ranges 2-5.
+ *   Some events are unique to one swimmer. Individual event variety per swimmer
+ *   ranges 2-5.
+ * - Relays are team events: the two swimmers from an age group swim the same
+ *   relay, so they share an identical team time and place. There's a timed 9-10
+ *   medley relay and a DQ'd 11-12 medley relay (relay DQs are common).
  * - Fields are realistically sized: ~10-16 swimmers at dual meets, ~20-34 at the
  *   championship. Our swimmers mostly finish mid-pack; wins are absent and only a
  *   couple of podium (2nd) swims show up, on standout days in small fields.
  * - Times generally trend down across the season but fluctuate meet to meet, so
  *   personal records are occasional (most are the swimmer's first swim of an
- *   event; only ~5 events show a genuine in-season improvement).
- * - Week 2 (vs Sharks) is a team loss; one swim is a DQ.
+ *   event; only a handful of events show a genuine in-season improvement).
+ * - Week 2 (vs Sharks) is a team loss; one individual swim is also a DQ.
  *
  * Values are emitted as strings to match the shape produced by the CSV parser,
  * so this data flows through processSwimData() exactly like real sheet data.
@@ -44,7 +48,8 @@ const SWIMMER_CODE = {
 // One entry per swimmer. EventNumber is shared across swimmers for the same
 // (age group, distance, stroke), so swimmers in the same age group meet in the
 // same numbered event. Each result is [meetCode, time, place, numSwimmers];
-// a DQ is ['<meet>', 'DQ', 'DQ', numSwimmers].
+// a DQ is ['<meet>', 'DQ', 'DQ', numSwimmers]. Relay rows for two teammates use
+// identical time/place (they swam the same relay).
 const SEASON = [
 	{
 		swimmer: 'Marlin Waters',
@@ -61,6 +66,9 @@ const SEASON = [
 			] },
 			{ eventNumber: 34, distance: 100, stroke: 'IM', results: [
 				['w1', '1:32.40', 4, 10], ['w2', '1:32.80', 6, 11], ['w3', '1:31.80', 3, 12], ['ch', '1:32.10', 10, 22]
+			] },
+			{ eventNumber: 16, distance: 200, stroke: 'Medley Relay', results: [
+				['ch', 'DQ', 'DQ', 12]
 			] }
 		]
 	},
@@ -76,6 +84,9 @@ const SEASON = [
 			] },
 			{ eventNumber: 30, distance: 50, stroke: 'Breaststroke', results: [
 				['w1', '47.10', 5, 11], ['w2', '47.60', 7, 10], ['w3', '47.30', 6, 12], ['ch', '47.80', 18, 20]
+			] },
+			{ eventNumber: 16, distance: 200, stroke: 'Medley Relay', results: [
+				['ch', 'DQ', 'DQ', 12]
 			] }
 		]
 	},
@@ -97,6 +108,9 @@ const SEASON = [
 			] },
 			{ eventNumber: 33, distance: 100, stroke: 'IM', results: [
 				['w1', '1:41.50', 6, 10], ['w2', '1:42.40', 8, 10], ['w3', '1:42.00', 5, 11], ['ch', '1:42.20', 16, 20]
+			] },
+			{ eventNumber: 14, distance: 200, stroke: 'Medley Relay', results: [
+				['w1', '3:14.20', 5, 8], ['ch', '3:08.40', 6, 12]
 			] }
 		]
 	},
@@ -109,6 +123,9 @@ const SEASON = [
 			] },
 			{ eventNumber: 23, distance: 50, stroke: 'Freestyle', results: [
 				['w1', '38.60', 5, 16], ['w2', '39.30', 7, 15], ['w3', '38.90', 4, 16], ['ch', '39.10', 13, 32]
+			] },
+			{ eventNumber: 14, distance: 200, stroke: 'Medley Relay', results: [
+				['w1', '3:14.20', 5, 8], ['ch', '3:08.40', 6, 12]
 			] }
 		]
 	}

@@ -47,9 +47,12 @@ describe('demoSwimData realism', () => {
 
 	const eventKey = (r) => `${r.Distance} ${r.Stroke}`;
 
-	it('gives each swimmer 2-5 distinct events, and not everyone the same number', () => {
+	const isRelay = (r) => r.Stroke.includes('Relay');
+
+	it('gives each swimmer 2-5 distinct individual events, and not everyone the same number', () => {
 		const eventsBySwimmer = {};
 		for (const r of races) {
+			if (isRelay(r)) continue; // relays are team events, not individual variety
 			(eventsBySwimmer[r.Swimmer] ??= new Set()).add(eventKey(r));
 		}
 		const counts = Object.values(eventsBySwimmer).map((s) => s.size);
@@ -77,7 +80,8 @@ describe('demoSwimData realism', () => {
 		const fieldKey = (r) => `${r.MeetId}|${r.AgeGroup}|${r.Distance}|${r.Stroke}|${r.EventNumber}`;
 		const byRace = {};
 		for (const r of out) {
-			if (r.isDQ || typeof r.Place !== 'number') continue;
+			// relays are team events: teammates legitimately share a time and place
+			if (r.isDQ || typeof r.Place !== 'number' || r.Stroke.includes('Relay')) continue;
 			(byRace[fieldKey(r)] ??= []).push(r);
 		}
 		for (const group of Object.values(byRace)) {

@@ -1,7 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
 	import SwimDashboard from '$lib/components/swim-tracker/SwimDashboard.svelte';
-	import { processSwimData } from '$lib/utils/swimData.js';
 
 	const STORAGE_KEY = 'swim-family-pw';
 
@@ -10,8 +9,8 @@
 	let loading = false;
 	let error = null;
 
-	let processedData = null;
 	let meets = [];
+	let races = [];
 	let swimmerEmojis = {};
 
 	async function loadData(pw) {
@@ -28,10 +27,10 @@
 
 			const data = await res.json();
 			meets = data.meets;
+			races = data.races;
 			swimmerEmojis = Object.fromEntries(
 				(data.swimmers ?? []).filter((s) => s.Name && s.Emoji).map((s) => [s.Name, s.Emoji])
 			);
-			processedData = processSwimData(data.meets, data.races);
 			unlocked = true;
 			sessionStorage.setItem(STORAGE_KEY, pw);
 		} catch (err) {
@@ -75,7 +74,7 @@
 			{#if error}<p class="error">{error}</p>{/if}
 		</form>
 	{:else}
-		<SwimDashboard {processedData} {meets} {swimmerEmojis} />
+		<SwimDashboard {meets} {races} {swimmerEmojis} />
 	{/if}
 </div>
 

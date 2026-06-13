@@ -1,10 +1,7 @@
 <script>
 	import SwimDashboard from '$lib/components/swim-tracker/SwimDashboard.svelte';
-	import { processSwimData } from '$lib/utils/swimData.js';
 	import { meets, races, swimmers } from '$lib/data/demoSwimData.js';
 
-	// Computed at build time during prerender — no network, no password.
-	const processedData = processSwimData(meets, races);
 	const swimmerEmojis = Object.fromEntries(
 		swimmers.filter((s) => s.Name && s.Emoji).map((s) => [s.Name, s.Emoji])
 	);
@@ -21,7 +18,7 @@
 		<a class="family-link" href="/swim-tracker/family">🔒 Family results</a>
 	</div>
 
-	<SwimDashboard {processedData} {meets} {swimmerEmojis} />
+	<SwimDashboard {meets} {races} {swimmerEmojis} />
 </div>
 
 <style>

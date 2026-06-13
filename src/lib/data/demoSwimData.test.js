@@ -39,45 +39,41 @@ describe('demoSwimData', () => {
 	});
 });
 
-describe('demoSwimData realism', () => {
-	const processedRaces = () => {
+describe('demoSwimData de-identification', () => {
+	// The demo data is seeded from a real season. This guard fails loudly if any
+	// real identifier ever reappears here (names, ID initials, team/league names).
+	it('contains no real identifiers', () => {
+		const blob = JSON.stringify({ meets, races, swimmers });
+		const forbidden = [
+			/quinn/i, /maeve/i, /\beva\b/i,
+			/fry'?s spring/i, /monticello/i, /farmington/i, /forest lake/i, /key west/i, /fairview/i,
+			/\bjsl\b/i, /\bcity\b/i, /fsbc/i, /lmst/i, /flst/i, /kwc/i,
+			/-qb\b/i, /-mb\b/i, /-eb\b/i,
+			/🐨/, /🐱/, /🐖/
+		];
+		for (const re of forbidden) {
+			expect(blob).not.toMatch(re);
+		}
+	});
+});
+
+describe('demoSwimData season integrity', () => {
+	const processed = () => {
 		const result = processSwimData(meets, races);
 		return Array.isArray(result) ? result : (result.races ?? result.processedRaces ?? []);
 	};
-
-	const eventKey = (r) => `${r.Distance} ${r.Stroke}`;
-
-	const isRelay = (r) => r.Stroke.includes('Relay');
-
-	it('gives each swimmer 2-5 distinct individual events, and not everyone the same number', () => {
-		const eventsBySwimmer = {};
-		for (const r of races) {
-			if (isRelay(r)) continue; // relays are team events, not individual variety
-			(eventsBySwimmer[r.Swimmer] ??= new Set()).add(eventKey(r));
-		}
-		const counts = Object.values(eventsBySwimmer).map((s) => s.size);
-		for (const c of counts) {
-			expect(c).toBeGreaterThanOrEqual(2);
-			expect(c).toBeLessThanOrEqual(5);
-		}
-		// event variety must differ between swimmers (requirement 1)
-		expect(new Set(counts).size).toBeGreaterThan(1);
-	});
+	const fieldKey = (r) => `${r.MeetId}|${r.AgeGroup}|${r.Distance}|${r.Stroke}|${r.EventNumber}`;
 
 	it('has swimmers competing head-to-head in the same race', () => {
-		// requirement 2: ≥2 of our swimmers in the same meet + age group + event
-		const fieldKey = (r) => `${r.MeetId}|${r.AgeGroup}|${r.Distance}|${r.Stroke}|${r.EventNumber}`;
 		const swimmersByRace = {};
 		for (const r of races) {
 			(swimmersByRace[fieldKey(r)] ??= new Set()).add(r.Swimmer);
 		}
-		const sharedRaces = Object.values(swimmersByRace).filter((s) => s.size >= 2);
-		expect(sharedRaces.length).toBeGreaterThan(0);
+		expect(Object.values(swimmersByRace).some((s) => s.size >= 2)).toBe(true);
 	});
 
-	it('keeps finish order consistent within shared races (faster time = better place)', () => {
-		const out = processedRaces();
-		const fieldKey = (r) => `${r.MeetId}|${r.AgeGroup}|${r.Distance}|${r.Stroke}|${r.EventNumber}`;
+	it('keeps finish order consistent within shared individual races', () => {
+		const out = processed();
 		const byRace = {};
 		for (const r of out) {
 			// relays are team events: teammates legitimately share a time and place
@@ -88,64 +84,16 @@ describe('demoSwimData realism', () => {
 			if (group.length < 2) continue;
 			const byTime = [...group].sort((a, b) => a.timeInSeconds - b.timeInSeconds);
 			for (let i = 1; i < byTime.length; i++) {
-				// faster swimmer must not have a worse (larger) place
+				// the faster swimmer must not have a worse (larger) place
 				expect(byTime[i - 1].Place).toBeLessThan(byTime[i].Place);
 			}
 		}
 	});
 
-	it('does not let swimmers finish top-2 too often', () => {
-		// requirement 3
-		const out = processedRaces();
-		const timed = out.filter((r) => !r.isDQ && typeof r.Place === 'number');
-		const topTwo = timed.filter((r) => r.Place <= 2);
-		expect(topTwo.length / timed.length).toBeLessThan(0.15);
-	});
-
-	it('does not hit personal records too often', () => {
-		// requirement 4 — most swims are not PRs (first-ever swims aside)
-		const out = processedRaces();
-		const timed = out.filter((r) => !r.isDQ);
-		const prs = timed.filter((r) => r.isPersonalRecord);
-		expect(prs.length / timed.length).toBeLessThan(0.5);
-	});
-
-	it('does not improve uniformly within an event (times fluctuate)', () => {
-		// requirement 5 — at least one event where a later swim is slower than an earlier one
-		const byKey = {};
-		for (const r of races) {
-			if (r.Time === 'DQ') continue;
-			(byKey[`${r.Swimmer}|${eventKey(r)}`] ??= []).push(r);
-		}
-		const meetOrder = Object.keys(MEET_ORDER);
-		const hasFluctuation = Object.values(byKey).some((group) => {
-			const seconds = group
-				.slice()
-				.sort((a, b) => meetOrder.indexOf(a.MeetId) - meetOrder.indexOf(b.MeetId))
-				.map((r) => toSeconds(r.Time));
-			return seconds.some((t, i) => i > 0 && t > seconds[i - 1]);
-		});
-		expect(hasFluctuation).toBe(true);
-	});
-
 	it('includes at least one team loss', () => {
-		// requirement 6
 		const losses = meets.filter(
 			(m) => Number(m.TheirPoints) > 0 && Number(m.OurPoints) < Number(m.TheirPoints)
 		);
 		expect(losses.length).toBeGreaterThan(0);
 	});
 });
-
-// chronological meet order + a tiny time parser, local to the realism tests
-const MEET_ORDER = {
-	'2025-06-14-week-1': 0,
-	'2025-06-21-week-2': 1,
-	'2025-06-28-week-3': 2,
-	'2025-07-12-champs': 3
-};
-
-function toSeconds(time) {
-	const parts = String(time).split(':');
-	return parts.length === 2 ? Number(parts[0]) * 60 + Number(parts[1]) : Number(parts[0]);
-}

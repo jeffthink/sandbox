@@ -97,6 +97,19 @@ npm run deploy     # Deploy to Vercel
 4. **Responsive Design**: Ensure visualizations work at all screen sizes
 5. **Clean Separation**: Routes handle layout/structure, components handle visualization
 
+## Privacy: Never Commit PII
+
+This repo is public. **No personally identifiable information may appear in any committed file** — source, tests, docs, specs, fixtures, `.env.example`, comments, or commit messages.
+
+PII includes real family/people names, real swimmer names, individual times tied to a real person, email addresses, passwords, and the Google Sheet CSV URLs (treat as secrets).
+
+Rules:
+- **Secrets and identifiers live in env vars only** (the Vercel dashboard), never in code or config tracked by git.
+- **Use fictional placeholders** in all examples, tests, and docs (e.g. `riverside`, `SWIM_RIVERSIDE_PASSWORD`). Never a real name, even as a "realistic" example.
+- **Real data goes in gitignored files only** (e.g. `config.local.md`, `config.<slug>.local.md`). Verify the file is gitignored before writing real data to it.
+- **Before every commit, double-check the staged diff for PII** — `git diff --cached` — and stop if anything real slips in. This applies to commit messages too.
+- If unsure whether something counts as PII, treat it as PII.
+
 ## Deployment
 
 The project is configured for Vercel deployment with:

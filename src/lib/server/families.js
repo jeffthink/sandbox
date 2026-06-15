@@ -58,3 +58,35 @@ export function getFamilyConfig(env, slug) {
 		swimmersUrl: env[`${prefix}_SWIMMERS_URL`]
 	};
 }
+
+/**
+ * Authenticate a family request. Returns a UNIFORM failure for all of:
+ * invalid slug format, unknown/unconfigured family, and wrong password — so a
+ * caller cannot distinguish them (no enumeration).
+ * @param {Record<string, string|undefined>} env
+ * @param {{ family: unknown, password: unknown }} body
+ * @returns {{ ok: true, slug: string, config: { password: string, meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined } } | { ok: false }}
+ */
+export function authenticateFamily(env, { family, password }) {
+	const config = typeof family === 'string' ? getFamilyConfig(env, family) : null;
+	if (!config || !verifyPassword(password, config.password)) {
+		return { ok: false };
+	}
+	return { ok: true, slug: family, config };
+}
+
+/**
+ * Load a family's swim data via the configured data source. This is the swap
+ * point: to move one family to a database later, branch here on config.
+ * @param {{ meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl?: string }} config
+ * @param {typeof fetch} fetchImpl
+ * @returns {Promise<{ meets: Array, races: Array, swimmers: Array }>}
+ */
+export function loadFamilyData(config, fetchImpl) {
+	return loadSwimData({
+		meetsUrl: config.meetsUrl,
+		racesUrl: config.racesUrl,
+		swimmersUrl: config.swimmersUrl,
+		fetch: fetchImpl
+	});
+}

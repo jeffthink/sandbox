@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isValidSlugFormat, discoverSlugs, getFamilyConfig } from './families.js';
+import { isValidSlugFormat, discoverSlugs, getFamilyConfig, authenticateFamily, loadFamilyData } from './families.js';
 
 describe('isValidSlugFormat', () => {
 	it('accepts lowercase alphanumeric slugs of valid length', () => {
@@ -63,5 +63,60 @@ describe('getFamilyConfig', () => {
 	});
 	it('returns null for an invalid slug format', () => {
 		expect(getFamilyConfig(env, 'River_Side')).toBe(null);
+	});
+});
+
+describe('authenticateFamily (no enumeration)', () => {
+	const env = {
+		SWIM_RIVERSIDE_PASSWORD: 'secret',
+		SWIM_RIVERSIDE_MEETS_URL: 'http://example.test/meets',
+		SWIM_RIVERSIDE_RACES_URL: 'http://example.test/races'
+	};
+
+	it('succeeds with a correct family + password', () => {
+		const res = authenticateFamily(env, { family: 'riverside', password: 'secret' });
+		expect(res.ok).toBe(true);
+		expect(res.config.meetsUrl).toBe('http://example.test/meets');
+	});
+
+	it('returns an identical failure for wrong password and unknown family', () => {
+		const wrongPw = authenticateFamily(env, { family: 'riverside', password: 'nope' });
+		const unknown = authenticateFamily(env, { family: 'lakeview', password: 'secret' });
+		const badFormat = authenticateFamily(env, { family: 'River_Side', password: 'secret' });
+		expect(wrongPw).toEqual({ ok: false });
+		expect(unknown).toEqual({ ok: false });
+		expect(badFormat).toEqual({ ok: false });
+	});
+
+	it('fails when family is missing or not a string', () => {
+		expect(authenticateFamily(env, { family: undefined, password: 'secret' })).toEqual({ ok: false });
+		expect(authenticateFamily(env, { family: 42, password: 'secret' })).toEqual({ ok: false });
+	});
+});
+
+describe('loadFamilyData', () => {
+	function fakeFetch(map) {
+		return async (url) => {
+			if (!(url in map)) return { ok: false, status: 404, text: async () => '' };
+			return { ok: true, status: 200, text: async () => map[url] };
+		};
+	}
+
+	it('loads and parses meets, races, and swimmers via the config', async () => {
+		const config = {
+			password: 'secret',
+			meetsUrl: 'http://example.test/meets',
+			racesUrl: 'http://example.test/races',
+			swimmersUrl: 'http://example.test/swimmers'
+		};
+		const fetchImpl = fakeFetch({
+			'http://example.test/meets': 'Name,Date\nSpring Invite,2026-05-01',
+			'http://example.test/races': 'Swimmer,Time\nAva,30.12',
+			'http://example.test/swimmers': 'Name,Emoji\nAva,🐬'
+		});
+		const data = await loadFamilyData(config, fetchImpl);
+		expect(data.meets).toEqual([{ Name: 'Spring Invite', Date: '2026-05-01' }]);
+		expect(data.races).toEqual([{ Swimmer: 'Ava', Time: '30.12' }]);
+		expect(data.swimmers).toEqual([{ Name: 'Ava', Emoji: '🐬' }]);
 	});
 });

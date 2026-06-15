@@ -31,8 +31,9 @@ export function discoverSlugs(env) {
 }
 
 /**
- * @param {string} slug
- * @returns {string} e.g. "riverside" -> "SWIM_RIVERSIDE"
+ * Build the uppercase env-var prefix for a slug.
+ * @param {string} slug e.g. "riverside"
+ * @returns {string} e.g. "SWIM_RIVERSIDE"
  */
 function envPrefix(slug) {
 	return `SWIM_${slug.toUpperCase()}`;
@@ -43,7 +44,7 @@ function envPrefix(slug) {
  * configured. A family is "configured" when its SWIM_<SLUG>_PASSWORD is set.
  * @param {Record<string, string|undefined>} env
  * @param {string} slug
- * @returns {{ password: string, meetsUrl: string, racesUrl: string, swimmersUrl: string } | null}
+ * @returns {{ password: string, meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined } | null}
  */
 export function getFamilyConfig(env, slug) {
 	if (!isValidSlugFormat(slug)) return null;

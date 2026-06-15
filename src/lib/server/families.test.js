@@ -18,6 +18,10 @@ describe('isValidSlugFormat', () => {
 		expect(isValidSlugFormat(null)).toBe(false);
 		expect(isValidSlugFormat(42)).toBe(false);
 	});
+	it('accepts the min (2) and max (32) length boundaries', () => {
+		expect(isValidSlugFormat('ab')).toBe(true);
+		expect(isValidSlugFormat('x'.repeat(32))).toBe(true);
+	});
 });
 
 describe('discoverSlugs', () => {

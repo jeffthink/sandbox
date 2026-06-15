@@ -64,3 +64,4 @@ swim-imports/
 
 # Personal swim-import skill config (real swimmer/team names — never commit)
 .claude/skills/swim-results-import/config.local.md
+.claude/skills/swim-results-import/config.*.local.md

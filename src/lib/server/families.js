@@ -65,20 +65,23 @@ export function getFamilyConfig(env, slug) {
  * caller cannot distinguish them (no enumeration).
  * @param {Record<string, string|undefined>} env
  * @param {{ family: unknown, password: unknown }} body
- * @returns {{ ok: true, slug: string, config: { password: string, meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined } } | { ok: false }}
+ * @returns {{ ok: true, slug: string, config: { meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined } } | { ok: false }}
  */
 export function authenticateFamily(env, { family, password }) {
 	const config = typeof family === 'string' ? getFamilyConfig(env, family) : null;
 	if (!config || !verifyPassword(password, config.password)) {
 		return { ok: false };
 	}
-	return { ok: true, slug: family, config };
+	// Strip the stored credential — callers (the data loader) only need the URLs,
+	// and this keeps the password from ever leaking downstream.
+	const { password: _password, ...safeConfig } = config;
+	return { ok: true, slug: family, config: safeConfig };
 }
 
 /**
  * Load a family's swim data via the configured data source. This is the swap
  * point: to move one family to a database later, branch here on config.
- * @param {{ meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl?: string }} config
+ * @param {{ meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined }} config
  * @param {typeof fetch} fetchImpl
  * @returns {Promise<{ meets: Array, races: Array, swimmers: Array }>}
  */

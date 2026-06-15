@@ -77,6 +77,7 @@ describe('authenticateFamily (no enumeration)', () => {
 		const res = authenticateFamily(env, { family: 'riverside', password: 'secret' });
 		expect(res.ok).toBe(true);
 		expect(res.config.meetsUrl).toBe('http://example.test/meets');
+		expect(res.config.password).toBeUndefined();
 	});
 
 	it('returns an identical failure for wrong password and unknown family', () => {

@@ -79,6 +79,7 @@
 </script>
 
 {#if unlocked}
+	<a class="switch-link" href="/swim-tracker/family" title="Switch family" aria-label="Switch family">🔒</a>
 	<SwimDashboard {meets} {races} {swimmerEmojis} />
 {:else}
 	<form class="gate" on:submit|preventDefault={handleSubmit}>
@@ -140,4 +141,16 @@
 	}
 	.gate button:disabled { opacity: 0.6; cursor: not-allowed; }
 	.error { color: #c00; margin: 0; }
+	.switch-link {
+		position: absolute;
+		top: 0;
+		right: 0;
+		font-size: 1.2rem;
+		line-height: 1;
+		text-decoration: none;
+		opacity: 0.35;
+		transition: opacity 0.2s ease;
+	}
+	.switch-link:hover,
+	.switch-link:focus-visible { opacity: 1; }
 </style>

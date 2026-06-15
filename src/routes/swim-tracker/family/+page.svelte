@@ -19,7 +19,7 @@
 </div>
 
 <style>
-	.container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+	.container { max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; }
 	@media (max-width: 768px) { .container { padding: 1rem; } }
 	.header { margin-bottom: 2rem; }
 	.header h1 { color: #2c3e50; margin-bottom: 0.5rem; }

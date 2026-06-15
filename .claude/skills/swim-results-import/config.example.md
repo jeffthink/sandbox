@@ -1,10 +1,15 @@
 # Swim Results Import — config template
 
-Copy this file to `config.local.md` (which is gitignored) and fill in your real team and
-swimmer details. The skill reads `config.local.md` at runtime; if it's missing, the skill
-will ask you to create it from this template.
+Copy this file to `config.<slug>.local.md` (which is gitignored) and fill in your real team
+and swimmer details. `<slug>` is this family's lowercase `[a-z0-9]` slug — ideally the same
+slug used for the family's results page. The skill resolves which config to read from the
+family slug at invocation; if none exists, it asks you to create one from this template.
 
-Keep real swimmer names only in `config.local.md` — never in committed files.
+Keep real swimmer names only in `config.<slug>.local.md` files — never in committed files.
+
+## Slug
+
+- **Slug:** <slug>   (lowercase [a-z0-9]; also names the output dir `swim-imports/<slug>/`)
 
 ## Our team
 

@@ -64,6 +64,14 @@ describe('getFamilyConfig', () => {
 	it('returns null for an invalid slug format', () => {
 		expect(getFamilyConfig(env, 'River_Side')).toBe(null);
 	});
+	it('returns null when a required data URL is missing', () => {
+		const partial = {
+			SWIM_RIVERSIDE_PASSWORD: 'secret',
+			SWIM_RIVERSIDE_MEETS_URL: 'http://example.test/meets'
+			// races URL intentionally absent
+		};
+		expect(getFamilyConfig(partial, 'riverside')).toBe(null);
+	});
 });
 
 describe('authenticateFamily (no enumeration)', () => {

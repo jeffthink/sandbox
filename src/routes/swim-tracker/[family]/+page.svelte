@@ -1,11 +1,11 @@
 <script>
-	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import SwimDashboard from '$lib/components/swim-tracker/SwimDashboard.svelte';
 
 	$: family = $page.params.family;
-	$: storageKey = `swim-family-pw:${family}`;
 
+	let currentFamily;
 	let password = '';
 	let unlocked = false;
 	let loading = false;
@@ -14,6 +14,22 @@
 	let meets = [];
 	let races = [];
 	let swimmerEmojis = {};
+
+	// SvelteKit reuses this component across [family] param changes, so a one-time
+	// onMount would leave the previous family's data on screen. Reset state and
+	// attempt auto-unlock whenever the slug changes. Guarded with `browser`
+	// because sessionStorage is unavailable during SSR.
+	$: if (browser && family && family !== currentFamily) {
+		currentFamily = family;
+		unlocked = false;
+		error = null;
+		meets = [];
+		races = [];
+		swimmerEmojis = {};
+		const saved = sessionStorage.getItem(`swim-family-pw:${family}`);
+		password = saved ?? '';
+		if (saved) loadData(saved);
+	}
 
 	async function loadData(pw) {
 		loading = true;
@@ -34,11 +50,11 @@
 				(data.swimmers ?? []).filter((s) => s.Name && s.Emoji).map((s) => [s.Name, s.Emoji])
 			);
 			unlocked = true;
-			sessionStorage.setItem(storageKey, pw);
+			sessionStorage.setItem(`swim-family-pw:${family}`, pw);
 		} catch (err) {
 			error = err.message;
 			unlocked = false;
-			sessionStorage.removeItem(storageKey);
+			sessionStorage.removeItem(`swim-family-pw:${family}`);
 		} finally {
 			loading = false;
 		}
@@ -47,14 +63,6 @@
 	function handleSubmit() {
 		if (password) loadData(password);
 	}
-
-	onMount(() => {
-		const saved = sessionStorage.getItem(storageKey);
-		if (saved) {
-			password = saved;
-			loadData(saved);
-		}
-	});
 </script>
 
 <svelte:head>

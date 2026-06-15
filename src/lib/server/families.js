@@ -12,6 +12,8 @@ export function isValidSlugFormat(slug) {
 	return typeof slug === 'string' && SLUG_PATTERN.test(slug);
 }
 
+// Exported for a possible future admin/index view; not called in production yet.
+// Its test also pins the invariant that the legacy SWIM_PASSWORD is ignored.
 /**
  * Discover configured family slugs by scanning env keys of the form
  * SWIM_<SLUG>_PASSWORD (non-empty value). Returns lowercased slugs.
@@ -40,21 +42,26 @@ function envPrefix(slug) {
 }
 
 /**
- * Return a family's data-source config, or null if the slug is invalid or not
- * configured. A family is "configured" when its SWIM_<SLUG>_PASSWORD is set.
+ * Return a family's data-source config, or null if the slug is invalid or the
+ * family is not fully configured. A family is usable only when its password and
+ * BOTH required data URLs (meets, races) are set; the swimmers tab is optional.
+ * Treating a half-configured family as unconfigured yields a uniform auth
+ * failure at the gate instead of a confusing post-login 500.
  * @param {Record<string, string|undefined>} env
  * @param {string} slug
- * @returns {{ password: string, meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined } | null}
+ * @returns {{ password: string, meetsUrl: string, racesUrl: string, swimmersUrl: string|undefined } | null}
  */
 export function getFamilyConfig(env, slug) {
 	if (!isValidSlugFormat(slug)) return null;
 	const prefix = envPrefix(slug);
 	const password = env[`${prefix}_PASSWORD`];
-	if (!password) return null;
+	const meetsUrl = env[`${prefix}_MEETS_URL`];
+	const racesUrl = env[`${prefix}_RACES_URL`];
+	if (!password || !meetsUrl || !racesUrl) return null;
 	return {
 		password,
-		meetsUrl: env[`${prefix}_MEETS_URL`],
-		racesUrl: env[`${prefix}_RACES_URL`],
+		meetsUrl,
+		racesUrl,
 		swimmersUrl: env[`${prefix}_SWIMMERS_URL`]
 	};
 }
@@ -65,7 +72,7 @@ export function getFamilyConfig(env, slug) {
  * caller cannot distinguish them (no enumeration).
  * @param {Record<string, string|undefined>} env
  * @param {{ family: unknown, password: unknown }} body
- * @returns {{ ok: true, slug: string, config: { meetsUrl: string|undefined, racesUrl: string|undefined, swimmersUrl: string|undefined } } | { ok: false }}
+ * @returns {{ ok: true, slug: string, config: { meetsUrl: string, racesUrl: string, swimmersUrl: string|undefined } } | { ok: false }}
  */
 export function authenticateFamily(env, { family, password }) {
 	const config = typeof family === 'string' ? getFamilyConfig(env, family) : null;

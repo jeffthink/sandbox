@@ -1,12 +1,9 @@
-import { redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
-// Depends on runtime env; override global prerender = true.
+// Reads runtime env to pre-fill the gate; override global prerender = true.
 export const prerender = false;
 
 export function load() {
-	// Owner's own family is just another slug. Redirect old bookmarks to it,
-	// falling back to the public demo if OWNER_SLUG isn't configured.
-	const owner = env.OWNER_SLUG;
-	throw redirect(307, owner ? `/swim-tracker/${owner}` : '/swim-tracker');
+	// OWNER_SLUG, when set, pre-fills the generic gate's family field.
+	return { ownerSlug: env.OWNER_SLUG ?? '' };
 }

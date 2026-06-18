@@ -1,6 +1,6 @@
 ---
 name: swim-results-import
-description: Use when extracting or importing swim meet results from a PDF or pasted meet text into CSV for the swim tracker. Team and swimmers are read from a local config (config.local.md). Produces two review-ready CSVs (Meets + Races) matching the Google Sheet schema. Handles SwimTopia Meet Maestro result exports.
+description: Use when extracting or importing swim meet results from a PDF or pasted meet text into CSV for the swim tracker. Team and swimmers are read from a per-family config (config.<slug>.local.md), selected by family slug. Produces two review-ready CSVs (Meets + Races) matching the Google Sheet schema. Handles SwimTopia Meet Maestro result exports.
 ---
 
 # Swim Results Import
@@ -10,23 +10,33 @@ the swim-tracker Google Sheet schema, for manual review before pasting into the 
 
 ## Configuration (read this first)
 
-Real team and swimmer details live in **`config.local.md`** (co-located with this skill,
-gitignored — it holds minors' names). Before extracting, Read `config.local.md` to get:
+This skill is **per-family**. Each family has its own gitignored config file
+`config.<slug>.local.md` (co-located with this skill — they hold minors' names).
+
+**Resolve the family slug first:**
+
+1. Take the slug from the invocation — an explicit argument (e.g. `swim-results-import riverside`)
+   or the user's request (e.g. "import this for the Riversides" → `riverside`).
+2. If no slug is given or it is ambiguous, list the available `config.*.local.md` files and
+   ask which family to import.
+3. Resolve to exactly one `config.<slug>.local.md`. If a named slug has no matching file,
+   say so and show the available slugs — do not guess.
+4. If no `config.*.local.md` exists at all, tell the user to copy `config.example.md` to
+   `config.<slug>.local.md` and fill it in, then stop. Do not hardcode names into committed files.
+
+Read the resolved `config.<slug>.local.md` to get:
 
 - our team's full name and its abbreviation as it appears in result rows,
 - the swimmers to extract (full names + the initials used in RaceIds),
 - the default pool size/unit,
 - any name-collision watch-outs.
 
-If `config.local.md` does not exist, tell the user to copy `config.example.md` to
-`config.local.md` and fill it in, then stop. Do not hardcode names into this file.
-
 Throughout this skill, `<OUR_TEAM>` / `<OUR_ABBR>` and "the configured swimmers" refer to
 values from that config. Extract ONLY races where a configured swimmer competed for
 `<OUR_ABBR>`, including relays they were a leg of. **Match on the full last name** — other
 swimmers may share a configured first name (see the collision notes in config).
 
-- **Output directory:** `swim-imports/` at the repo root (gitignored). Create it if missing.
+- **Output directory:** `swim-imports/<slug>/` at the repo root (gitignored). Create it if missing.
 
 ## Prerequisite: reading the PDF
 
@@ -37,7 +47,7 @@ PDF pages; if it's missing, extract text with layout preserved instead:
 pdftotext -layout <meet>.pdf <meet>.txt   # requires: brew install poppler
 ```
 
-Work from the `-layout` text. Put raw source files in `swim-imports/raw/` (also gitignored).
+Work from the `-layout` text. Put raw source files in `swim-imports/<slug>/raw/` (also gitignored).
 
 ## Meet Maestro format — parsing rules (read carefully)
 
@@ -76,7 +86,7 @@ team and not a place.
 
 ## Workflow
 
-1. **Read `config.local.md`** (see Configuration).
+1. **Resolve the family slug and read `config.<slug>.local.md`** (see Configuration).
 2. **Extract the source text** (see prerequisite).
 3. **Meet date:** read it from the PDF header (e.g. "— Jun 10, 2026" / "06/10/2026"). Use
    the actual race date, NOT today's date and NOT the download date in the filename.
@@ -103,7 +113,7 @@ their own short code, e.g. `<OPP_ABBR>`). Full names appear ONLY in the `Opponen
 
 ## Output files
 
-`swim-imports/<MeetId>-meets.csv` and `swim-imports/<MeetId>-races.csv`.
+`swim-imports/<slug>/<MeetId>-meets.csv` and `swim-imports/<slug>/<MeetId>-races.csv`.
 
 ### Meets CSV — exactly one row
 
@@ -161,8 +171,8 @@ RaceId,MeetId,Swimmer,EventNumber,AgeGroup,Distance,Stroke,Time,Place,NumSwimmer
 Meet: <date> vs <Opponent> (<home/away>) — <score or "score not in this PDF">
   <Swimmer>: #35 25 Breaststroke, 36.25, 4 of 6
   ...
-Wrote: swim-imports/<MeetId>-meets.csv
-       swim-imports/<MeetId>-races.csv
+Wrote: swim-imports/<slug>/<MeetId>-meets.csv
+       swim-imports/<slug>/<MeetId>-races.csv
 ```
 
 Flag any judgment calls (date source, pool size, multi-team opponent) for the user, and

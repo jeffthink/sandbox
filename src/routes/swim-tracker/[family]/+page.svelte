@@ -1,7 +1,8 @@
 <script>
+	import { page } from '$app/stores';
 	import FamilyGate from '$lib/components/swim-tracker/FamilyGate.svelte';
 
-	export let data;
+	$: family = $page.params.family;
 </script>
 
 <svelte:head>
@@ -12,10 +13,10 @@
 <div class="container">
 	<div class="header">
 		<h1>Family Swim Results</h1>
-		<p>Private results. Enter your family name and password to view.</p>
+		<p>Private results. Enter the family password to view.</p>
 	</div>
 
-	<FamilyGate initialFamily={data.ownerSlug} />
+	<FamilyGate initialFamily={family} />
 </div>
 
 <style>

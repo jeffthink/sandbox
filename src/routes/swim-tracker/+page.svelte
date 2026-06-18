@@ -15,14 +15,14 @@
 	<div class="header">
 		<h1>Swim Times Tracker <span class="demo-badge">Demo</span></h1>
 		<p>Track meet results and visualize swimming progress over time. This demo uses fictional swimmers and synthetic data.</p>
-		<a class="family-link" href="/swim-tracker/family">🔒 Family results</a>
 	</div>
+	<a class="family-link" href="/swim-tracker/family" title="Family results" aria-label="Family results">🔒</a>
 
 	<SwimDashboard {meets} {races} {swimmerEmojis} />
 </div>
 
 <style>
-	.container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+	.container { max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; }
 	@media (max-width: 768px) { .container { padding: 1rem; } }
 	.header { margin-bottom: 2rem; }
 	.header h1 { color: #2c3e50; margin-bottom: 0.5rem; }
@@ -36,13 +36,17 @@
 		border-radius: 999px;
 	}
 	.family-link {
-		display: inline-block;
-		margin-top: 0.5rem;
-		color: #3498db;
+		position: absolute;
+		top: 0;
+		right: 0;
+		font-size: 1.2rem;
+		line-height: 1;
 		text-decoration: none;
-		font-size: 0.9rem;
+		opacity: 0.35;
+		transition: opacity 0.2s ease;
 	}
-	.family-link:hover { text-decoration: underline; }
+	.family-link:hover,
+	.family-link:focus-visible { opacity: 1; }
 	@media (max-width: 768px) {
 		.header { margin-bottom: 1rem; }
 		.header h1 { font-size: 1.5rem; }

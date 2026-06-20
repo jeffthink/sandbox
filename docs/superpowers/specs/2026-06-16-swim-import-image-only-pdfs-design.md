@@ -1,7 +1,11 @@
 # Swim Import — Image-Only PDFs & Folder Hygiene — Design
 
-**Date:** 2026-06-16
-**Status:** Approved (pending spec review)
+**Date:** 2026-06-16 (revised 2026-06-19)
+**Status:** Implemented in `SKILL.md`. **2026-06-19 revision:** OCR is now IN scope as a
+text-recovery *locator* (not a digit source) — see "OCR as locator" below and the Out-of-Scope
+note. This change came out of the first live image-only run (a 13-page "Microsoft Print to PDF"
+meet export), where OCR restored the `grep`-based completeness check and caught a by-eye digit
+transposition (a relay time `1:41.07` mis-read as `1:41.71`).
 
 ## Goal
 
@@ -19,10 +23,12 @@ This was hit in practice: a real meet PDF produced an empty text extraction, and
 
 1. **On detecting image-only: auto by-eye, no prompt.** Switch to the render protocol automatically. Keep a single *informational* line in the final summary noting it was image-only and that a text-layer PDF / SwimTopia CSV export would import exactly. (Not a prompt.)
 2. **Render cleanup: isolate + auto-delete on success.** Scratch renders go in `swim-imports/<slug>/work/`; after the CSVs are written and verified, delete `work/`. Keep the source PDF (+extracted text) in `raw/` and the CSVs in `<slug>/`.
+3. **OCR as locator (2026-06-19).** Image-only PDFs break the skill's `grep`-based completeness check (no text to search). Use macOS's built-in Vision OCR (`ocr-locate.swift`, no install) on the quadrant renders to recover text *for `grep` and the event map only* — locating every swimmer occurrence and proving none were missed. **OCR is never the source of times/places** (Vision transposes digits in dense two-column tables); every recorded digit still comes from a by-eye high-res crop. OCR is optional with graceful fallback (no `swift` / headless / non-macOS ⇒ use the age-group enumeration sweep). This supersedes the original "OCR — out of scope" line.
 
-## Changes (all in `.claude/skills/swim-results-import/SKILL.md`)
+## Changes (in `.claude/skills/swim-results-import/SKILL.md` + `ocr-locate.swift`)
 
-No code; the skill is Markdown instructions. The text-PDF path is unchanged.
+The skill is Markdown instructions plus one supporting script (`ocr-locate.swift`, the Vision
+OCR locator). The text-PDF path is unchanged.
 
 ### A. Detection step (after extracting source text)
 
@@ -87,6 +93,9 @@ No automated harness (Markdown skill + gitignored data). Verify by:
 
 ## Out of Scope (YAGNI)
 
-- OCR (tesseract) — by-eye reading of rendered quadrants is the chosen fallback; OCR adds a dependency and struggles with the two-column tables.
+- ~~OCR (tesseract)~~ — **revised 2026-06-19:** OCR is now used, but only as a *locator* via
+  macOS Vision (`ocr-locate.swift`), not tesseract and not for digits. `tesseract` remains out
+  of scope (not installed; worse on these tables). By-eye high-res crops remain the source of
+  every recorded time/place.
 - Automatic conversion of image-only PDFs to text (not possible without OCR).
 - Any change to the CSV schema, the per-family config scheme, or the text-PDF parsing rules.

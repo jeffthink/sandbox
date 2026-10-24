@@ -121,6 +121,7 @@
 		{crowd}
 		{crowdError}
 		{lookup}
+		shareUrl={$page.url.origin + $page.url.pathname}
 		onedit={() => {
 			editing = true;
 			view = 'form';

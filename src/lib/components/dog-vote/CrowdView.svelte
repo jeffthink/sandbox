@@ -2,6 +2,7 @@
 	import GuessCard from './GuessCard.svelte';
 	import ConsensusChart from './ConsensusChart.svelte';
 	import CrowdList from './CrowdList.svelte';
+	import ShareButton from './ShareButton.svelte';
 
 	/**
 	 * @type {{
@@ -10,10 +11,11 @@
 	 *   crowd: { count: number, voted: boolean, consensus?: Array<{ breed: string, pct: number, other?: boolean }>, votes?: Array<any> } | null,
 	 *   crowdError: string,
 	 *   lookup: (name: string) => { breed: string, group: string, imageUrl: string },
-	 *   onedit: () => void
+	 *   onedit: () => void,
+	 *   shareUrl: string
 	 * }}
 	 */
-	let { settings, mine, crowd, crowdError, lookup, onedit } = $props();
+	let { settings, mine, crowd, crowdError, lookup, onedit, shareUrl } = $props();
 </script>
 
 <div class="wrap">
@@ -28,6 +30,8 @@
 	</header>
 
 	<GuessCard guess={mine} {lookup} {onedit} />
+
+	<ShareButton url={shareUrl} />
 
 	<section class="card crowd">
 		<h2>The crowd’s average guess</h2>

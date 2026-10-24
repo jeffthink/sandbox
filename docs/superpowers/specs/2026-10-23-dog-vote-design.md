@@ -240,9 +240,9 @@ The "unused" rule is my addition. It stops a guess being double-counted when the
 - Light mode only is acceptable. *(My call: an occasion page.)*
 - **Breed visuals:**
   - Each group has a fixed emoji and colour in code, keyed by normalized group name. The exact emoji are the builder's call.
-  - **Group vocabulary:** use Wisdom Panel–style group names (as they appear on its results), not AKC groups:
-    - Terrier, Sporting, Herding, Scent Hound, Sighthound, Guardian, Working, Toy and Companion, Spitz and Primitive, Asian and Oceanian.
-    - The builder should confirm the current list against Wisdom Panel's public breed-group pages and adjust.
+  - **Group vocabulary:** Wisdom Panel's 12 published groups (confirmed at wisdompanel.com/en-us/dog-breed-groups, 2026-10):
+    - Asian and Oceanian, Companion, Guard, Herding, Hound, Middle Eastern and African, Mountain Dogs, Sighthound, Sporting, Street Dogs, Terrier, Wild Canids.
+    - The eight most common in mixes get distinct chart colors; the other four share a neutral color and are told apart by emoji and label.
   - The seed CSV uses these exact names with " group" appended (e.g. `Terrier group`).
   - **Any group the code doesn't know** (another owner's sheet, a renamed group) falls back to 🐕 and a neutral colour. No code change is needed. *(My call.)*
   - Group colours are reused in all charts and chips so breeds read consistently.

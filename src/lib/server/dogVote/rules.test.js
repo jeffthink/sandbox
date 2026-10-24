@@ -228,6 +228,19 @@ describe('crowdView', () => {
 		expect(crowdView(votes, 'Zed')).toEqual({ count: 2, voted: false });
 		expect(crowdView(votes, null)).toEqual({ count: 2, voted: false });
 	});
+
+	it('returns the voter’s name as saved in the sheet', () => {
+		expect(crowdView(votes, 'ava').name).toBe('Ava');
+	});
+
+	it('matches URL-style names with dashes or underscores for spaces', () => {
+		const spaced = [vote('Sam Lee', 't1'), vote('Mary-Kate', 't2'), vote('Mary Kate', 't3')];
+		expect(crowdView(spaced, 'sam-lee').name).toBe('Sam Lee');
+		expect(crowdView(spaced, 'sam_lee').name).toBe('Sam Lee');
+		// A real dash in a saved name wins over the dash-as-space reading.
+		expect(crowdView(spaced, 'Mary-Kate').name).toBe('Mary-Kate');
+		expect(crowdView(spaced, 'mary kate').name).toBe('Mary Kate');
+	});
 });
 
 describe('parseVoteRows with repeated breeds', () => {

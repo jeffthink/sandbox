@@ -182,18 +182,23 @@ export function consensus(votes, topN = TOP_N) {
 /**
  * What the crowd endpoint returns. Consensus and individual guesses are only
  * included for someone whose name has a vote (casual anti-peeking, not auth).
+ * The name may come from a URL, so dashes/underscores also match spaces
+ * when no saved name matches exactly.
  * @param {Vote[]} votes - latest-per-name votes
  * @param {string | null} name
- * @returns {{ count: number, voted: boolean, consensus?: Array<Guess & { other?: true }>, votes?: Vote[] }}
+ * @returns {{ count: number, voted: boolean, name?: string, consensus?: Array<Guess & { other?: true }>, votes?: Vote[] }}
  */
 export function crowdView(votes, name) {
 	const count = votes.length;
 	const key = name ? normalizeName(name) : '';
-	const voted = key !== '' && votes.some((v) => normalizeName(v.name) === key);
-	if (!voted) return { count, voted: false };
+	/** @param {string} k */
+	const find = (k) => (k === '' ? undefined : votes.find((v) => normalizeName(v.name) === k));
+	const match = find(key) ?? find(normalizeName(key.replace(/[-_]+/g, ' ')));
+	if (!match) return { count, voted: false };
 	return {
 		count,
 		voted: true,
+		name: match.name,
 		consensus: consensus(votes).top,
 		votes: [...votes].sort((a, b) => (a.timestamp < b.timestamp ? 1 : a.timestamp > b.timestamp ? -1 : 0))
 	};

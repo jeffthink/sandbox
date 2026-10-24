@@ -2,8 +2,8 @@
 	import PhotoHero from './PhotoHero.svelte';
 	import { PRONOUNS } from './lookup.js';
 
-	/** @type {{ settings: { dogName: string, pronoun: 'he'|'she'|'they', intro: string, photos: string[] }, count: number, onstart: () => void }} */
-	let { settings, count, onstart } = $props();
+	/** @type {{ settings: { dogName: string, pronoun: 'he'|'she'|'they', intro: string, photos: string[] }, count: number, notice?: string, onstart: () => void }} */
+	let { settings, count, notice = '', onstart } = $props();
 
 	const poss = $derived(PRONOUNS[settings.pronoun].poss);
 </script>
@@ -22,6 +22,9 @@
 				results come back, take your best guess at {poss} mix, then see how it stacks up against
 				everyone else’s.
 			</p>
+		{/if}
+		{#if notice}
+			<p class="notice" role="status">{notice}</p>
 		{/if}
 		<button class="btn start" onclick={onstart}>🐾 Make your guess</button>
 		<p class="count">
@@ -64,6 +67,16 @@
 
 	.own {
 		white-space: pre-line;
+	}
+
+	.notice {
+		margin: -0.5rem 0 1rem;
+		padding: 0.6rem 0.8rem;
+		border-radius: 10px;
+		background: var(--accent-soft);
+		color: var(--accent-dark);
+		font-weight: 700;
+		overflow-wrap: anywhere;
 	}
 
 	.start {

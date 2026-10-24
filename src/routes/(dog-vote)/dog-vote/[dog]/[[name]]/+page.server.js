@@ -9,5 +9,6 @@ export const prerender = false;
 export async function load({ params, fetch }) {
 	const data = await loadPage({ env, fetch, slug: params.dog, dev });
 	if ('status' in data) throw error(404, 'Not found');
-	return data;
+	// /dog-vote/<dog>/<name> opens that person's results without re-entering.
+	return { ...data, urlName: params.name ?? '' };
 }

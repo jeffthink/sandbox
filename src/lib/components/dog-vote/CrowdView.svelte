@@ -13,10 +13,11 @@
 	 *   lookup: (name: string) => { breed: string, group: string, imageUrl: string },
 	 *   onedit: () => void,
 	 *   onreset: () => void,
-	 *   shareUrl: string
+	 *   shareUrl: string,
+	 *   myUrl: string
 	 * }}
 	 */
-	let { settings, mine, crowd, crowdError, lookup, onedit, onreset, shareUrl } = $props();
+	let { settings, mine, crowd, crowdError, lookup, onedit, onreset, shareUrl, myUrl } = $props();
 </script>
 
 <div class="wrap">
@@ -54,6 +55,12 @@
 			<h2>Everyone’s guesses</h2>
 			<CrowdList votes={crowd.votes} {lookup} myName={mine.name} />
 		</section>
+	{/if}
+
+	{#if myUrl}
+		<p class="mylink">
+			Come back anytime: <a href={myUrl}>{myUrl.replace(/^https?:\/\//, '')}</a>
+		</p>
 	{/if}
 
 	<p class="reset">
@@ -119,8 +126,21 @@
 		margin-top: 0.5rem;
 	}
 
-	.reset {
+	.mylink {
 		margin: 1rem 0 0;
+		text-align: center;
+		color: var(--ink-soft);
+		font-size: 0.9rem;
+		overflow-wrap: anywhere;
+	}
+
+	.mylink a {
+		color: var(--accent-dark);
+		font-weight: 700;
+	}
+
+	.reset {
+		margin: 0;
 		text-align: center;
 		color: var(--ink-soft);
 		font-size: 0.95rem;

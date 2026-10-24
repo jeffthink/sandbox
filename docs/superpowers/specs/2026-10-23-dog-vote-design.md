@@ -175,6 +175,7 @@ The sheet sets the photo order because the server can't reliably list the `stati
      - It shows large square photos in a 2-column grid on phones, grouped by breed group (sheet order, alphabetical within each group), with a row of group shortcuts at the top.
      - Tap a photo to select it (✓) and tap again to unselect.
      - A top bar shows "N of 5 picked" and a Done button. At 5, the other photos dim and a hint says to tap a ✓ to swap one out.
+     - The dog's own photos stay pinned in a strip under the top bar (~150px tall, swipeable), with a short hint, so visitors can compare while scrolling. A round thumbnail of the dog in the top bar hides or shows the strip; it starts shown.
      - Escape or Done closes it, and the page behind doesn't scroll while it's open.
    - Duplicates are blocked (case-insensitive).
 3. **Percentages**: each chosen breed gets a slider plus −/+ buttons, all moving in **steps of 5** (minimum 5%).

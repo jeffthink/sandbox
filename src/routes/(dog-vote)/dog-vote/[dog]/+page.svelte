@@ -107,6 +107,7 @@
 		slug={data.slug}
 		dogName={settings.dogName}
 		pronoun={settings.pronoun}
+		photos={settings.photos}
 		breeds={data.breeds}
 		initial={editing ? mine : null}
 		{onsubmitted}

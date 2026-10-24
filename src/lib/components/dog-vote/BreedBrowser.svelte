@@ -7,6 +7,8 @@
 	 * Full-screen gallery of every breed, grouped, for visitors who'd rather
 	 * look than search. Tap a photo to select or unselect it.
 	 * @type {{
+	 *   dogName: string,
+	 *   photos: string[],
 	 *   breeds: Array<{ breed: string, group: string, imageUrl: string }>,
 	 *   picked: string[],
 	 *   max: number,
@@ -14,7 +16,10 @@
 	 *   onclose: () => void
 	 * }}
 	 */
-	let { breeds, picked, max, ontoggle, onclose } = $props();
+	let { dogName, photos, breeds, picked, max, ontoggle, onclose } = $props();
+
+	/** The dog's own photos stay pinned above the gallery for comparing. */
+	let showDog = $state(true);
 
 	const sections = $derived(groupBreeds(breeds));
 	const pickedKeys = $derived(new Set(picked.map(normalizeName)));
@@ -58,12 +63,37 @@
 
 <div class="overlay" role="dialog" aria-modal="true" aria-label="Browse all breeds">
 	<header class="bar">
+		{#if photos.length > 0}
+			<button
+				type="button"
+				class="dog-toggle"
+				aria-expanded={showDog}
+				aria-label={showDog ? `Hide ${dogName}'s photos` : `Show ${dogName}'s photos`}
+				onclick={() => (showDog = !showDog)}
+			>
+				<img src={photos[0]} alt="" />
+			</button>
+		{/if}
 		<div class="status">
 			<strong>{picked.length} of {max} picked</strong>
 			{#if full}<span class="hint">Tap a ✓ to swap one out</span>{/if}
 		</div>
 		<button class="btn done" bind:this={doneButton} onclick={onclose}>Done</button>
 	</header>
+
+	{#if showDog && photos.length > 0}
+		<div class="compare" aria-label="Photos of {dogName} to compare">
+			{#each photos as src, i (src)}
+				<figure>
+					<img {src} alt={i === 0 ? `${dogName}` : `${dogName} (photo ${i + 1})`} />
+					{#if i === 0}<figcaption>{dogName}</figcaption>{/if}
+				</figure>
+			{/each}
+			<p class="compare-hint">
+				Scroll the breeds below to compare with {dogName}. Tap the round photo up top to hide this.
+			</p>
+		</div>
+	{/if}
 
 	<nav class="jump" aria-label="Breed groups">
 		{#each sections as s (s.id)}
@@ -128,7 +158,85 @@
 	}
 
 	.status {
+		flex: 1;
 		display: grid;
+	}
+
+	.dog-toggle {
+		flex: none;
+		width: 48px;
+		height: 48px;
+		padding: 0;
+		border: none;
+		border-radius: 50%;
+		overflow: hidden;
+		cursor: pointer;
+		box-shadow: 0 0 0 3px var(--accent-soft);
+	}
+
+	.dog-toggle[aria-expanded='true'] {
+		box-shadow: 0 0 0 3px var(--accent);
+	}
+
+	.dog-toggle img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.compare {
+		flex: none;
+		display: flex;
+		gap: 0.5rem;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		padding: 0.75rem 16px 0;
+		scrollbar-width: none;
+	}
+
+	.compare::-webkit-scrollbar {
+		display: none;
+	}
+
+	figure {
+		position: relative;
+		flex: none;
+		margin: 0;
+		height: 150px;
+		max-width: 100%;
+		scroll-snap-align: start;
+	}
+
+	figure img {
+		height: 100%;
+		max-width: 100%;
+		width: auto;
+		object-fit: cover;
+		border-radius: 16px;
+		display: block;
+		box-shadow: 0 2px 8px rgba(120, 72, 32, 0.15);
+	}
+
+	.compare-hint {
+		flex: 1 0 140px;
+		align-self: center;
+		margin: 0;
+		font-size: 0.88rem;
+		color: var(--ink-soft);
+	}
+
+	figcaption {
+		position: absolute;
+		left: 8px;
+		bottom: 8px;
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		background: rgba(43, 33, 27, 0.75);
+		color: #fff;
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: 0.95rem;
 	}
 
 	.hint {

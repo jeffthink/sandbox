@@ -14,6 +14,7 @@
 	 *   slug: string,
 	 *   dogName: string,
 	 *   pronoun: 'he'|'she'|'they',
+	 *   photos: string[],
 	 *   breeds: Array<{ breed: string, group: string, imageUrl: string }>,
 	 *   initial?: { name: string, guesses: Array<{ breed: string, pct: number }>, comment: string } | null,
 	 *   onsubmitted: (response: any) => void,
@@ -21,7 +22,7 @@
 	 *   onclosed: () => void
 	 * }}
 	 */
-	let { slug, dogName, pronoun, breeds, initial = null, onsubmitted, oncancel, onclosed } = $props();
+	let { slug, dogName, pronoun, photos, breeds, initial = null, onsubmitted, oncancel, onclosed } = $props();
 
 	const lookup = $derived(makeLookup(breeds));
 	const editing = Boolean(initial);
@@ -195,6 +196,8 @@
 
 {#if browsing}
 	<BreedBrowser
+		{dogName}
+		{photos}
 		{breeds}
 		picked={picks.map((p) => p.breed)}
 		max={MAX_BREEDS}

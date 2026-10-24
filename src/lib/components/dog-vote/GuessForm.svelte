@@ -1,7 +1,7 @@
 <script>
 	import BreedPicker from './BreedPicker.svelte';
 	import PctEditor from './PctEditor.svelte';
-	import { addSlot, removeSlot, appendRemainder, totalStatus } from './balance.js';
+	import { evenSplit, appendRemainder, snap, totalStatus, STEP } from './balance.js';
 	import { makeLookup, PRONOUNS } from './lookup.js';
 
 	const MAX_BREEDS = 5;
@@ -33,7 +33,7 @@
 	 * Breeds split evenly until the visitor moves a slider. After that nothing
 	 * moves on its own; they bring the total to 100 themselves.
 	 */
-	let adjusted = $state(false);
+	let adjusted = $state(Boolean(initial)); // a saved guess's values were set on purpose
 	/** @type {{ name?: string, guesses?: string, comment?: string, form?: string }} */
 	let errors = $state({});
 	let submitting = $state(false);
@@ -48,7 +48,7 @@
 	/** @param {string} breed */
 	function pick(breed) {
 		const current = picks.map((p) => p.pct);
-		const pcts = adjusted ? appendRemainder(current) : addSlot(current);
+		const pcts = adjusted ? appendRemainder(current) : evenSplit(current.length + 1);
 		picks = [...picks, { breed, pct: 0 }].map((p, i) => ({ ...p, pct: pcts[i] }));
 		errors.guesses = undefined;
 	}
@@ -57,12 +57,7 @@
 	function remove(index) {
 		const rest = picks.filter((_, i) => i !== index);
 		if (rest.length <= 1) adjusted = false; // a lone breed is simply 100%
-		const pcts = adjusted
-			? rest.map((p) => p.pct)
-			: removeSlot(
-					picks.map((p) => p.pct),
-					index
-				);
+		const pcts = adjusted ? rest.map((p) => p.pct) : evenSplit(rest.length);
 		picks = rest.map((p, i) => ({ ...p, pct: rest.length === 1 ? 100 : pcts[i] }));
 	}
 
@@ -71,8 +66,7 @@
 	 * @param {number} value
 	 */
 	function setOne(index, value) {
-		const max = 100 - (picks.length - 1);
-		const pct = Math.min(Math.max(Math.round(value), 1), max);
+		const pct = snap(value, 100 - STEP * (picks.length - 1));
 		adjusted = true;
 		picks = picks.map((p, i) => (i === index ? { ...p, pct } : p));
 	}

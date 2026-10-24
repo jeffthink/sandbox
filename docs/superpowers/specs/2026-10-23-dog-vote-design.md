@@ -173,12 +173,13 @@ The sheet sets the photo order because the server can't reliably list the `stati
    - If the search text doesn't match, offer "Add '<text>'" as a free-text breed.
    - Free-text breeds have no group.
    - Duplicates are blocked (case-insensitive).
-3. **Percentages**: each chosen breed gets a slider plus −/+ stepper buttons that change it by 1.
-   - **Even split until you adjust.** Until the visitor moves a slider, breeds split evenly: adding a breed takes its share proportionally from the others, and removing one hands its share back.
-   - **Independent after that.** Once any slider moves, nothing changes on its own. Each value is 1 to (100 − other breeds). A breed added later gets whatever is left (at least 1), and a breed removed later simply leaves a gap.
+3. **Percentages**: each chosen breed gets a slider plus −/+ buttons, all moving in **steps of 5** (minimum 5%).
+   - **Even split until you adjust.** Until the visitor moves a slider, breeds split evenly in 5s: 50/50, 35/35/30, 25 × 4, 20 × 5.
+   - **Independent after that.** Once any slider moves, nothing changes on its own. Each value runs from 5 to 100 − 5 × (other breeds). A breed added later gets whatever is left (at least 5), and a breed removed later simply leaves a gap. A saved guess opened for editing starts in this mode.
+   - **Older odd values** (e.g. 37) display as saved and snap to the next multiple of 5 on their first −/+ tap or slider move. The server still accepts any whole number from 1 to 100.
    - **Total and submit.** A running total is always visible: "100% ✓", "85% · 15% left" or "110% · 10% over". Submit stays disabled, with the label "Make it add up to 100%", until the total is exactly 100.
    - With one breed it's fixed at 100.
-   - *(Owner decision, 2026-10-24: automatic rebalancing of 3+ breeds was too surprising in testing, because values the visitor had already set kept moving.)*
+   - *(Owner decisions, 2026-10-24: automatic rebalancing of 3+ breeds was too surprising in testing, because values the visitor had already set kept moving; steps of 5 because people guess in round numbers and it makes hitting 100 easy.)*
 4. **Comment**: optional, at most 280 characters, with a character counter.
 5. **Submit**. The server's error messages show next to the fields.
 

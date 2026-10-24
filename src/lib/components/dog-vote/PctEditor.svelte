@@ -1,6 +1,6 @@
 <script>
 	import BreedAvatar from './BreedAvatar.svelte';
-	import { totalStatus } from './balance.js';
+	import { totalStatus, stepUp, stepDown, STEP } from './balance.js';
 
 	/**
 	 * @type {{
@@ -12,7 +12,7 @@
 	 */
 	let { picks, lookup, onset, onremove } = $props();
 
-	const max = $derived(100 - (picks.length - 1));
+	const max = $derived(100 - STEP * (picks.length - 1));
 	const status = $derived(totalStatus(picks.map((p) => p.pct)));
 	const set = onset;
 </script>
@@ -31,17 +31,18 @@
 					type="button"
 					class="step"
 					aria-label="Less {pick.breed}"
-					disabled={picks.length === 1 || pick.pct <= 1}
-					onclick={() => set(i, pick.pct - 1)}>−</button
+					disabled={picks.length === 1 || pick.pct <= STEP}
+					onclick={() => set(i, stepDown(pick.pct))}>−</button
 				>
 				<input
 					type="range"
-					min="1"
+					min={STEP}
 					{max}
+					step={STEP}
 					value={pick.pct}
 					disabled={picks.length === 1}
 					aria-label="{pick.breed} percentage"
-					style:--fill="{((pick.pct - 1) / Math.max(max - 1, 1)) * 100}%"
+					style:--fill="{((pick.pct - STEP) / Math.max(max - STEP, 1)) * 100}%"
 					oninput={(e) => set(i, Number(e.currentTarget.value))}
 				/>
 				<button
@@ -49,7 +50,7 @@
 					class="step"
 					aria-label="More {pick.breed}"
 					disabled={picks.length === 1 || pick.pct >= max}
-					onclick={() => set(i, pick.pct + 1)}>+</button
+					onclick={() => set(i, stepUp(pick.pct, max))}>+</button
 				>
 				<output class="pct">{pick.pct}%</output>
 			</div>

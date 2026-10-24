@@ -1,34 +1,41 @@
 import { describe, it, expect } from 'vitest';
-import { addSlot, removeSlot, appendRemainder, totalStatus } from './balance.js';
+import { evenSplit, appendRemainder, snap, stepUp, stepDown, totalStatus, STEP } from './balance.js';
 
-/** @param {number[]} pcts */
-function expectValid(pcts) {
-	expect(pcts.every((p) => Number.isInteger(p) && p >= 1)).toBe(true);
-	expect(pcts.reduce((a, b) => a + b, 0)).toBe(100);
-}
-
-describe('even split before any slider is moved', () => {
-	it('gives a new breed an even share taken from the others', () => {
-		expect(addSlot([100])).toEqual([50, 50]);
-		const three = addSlot([50, 50]);
-		expectValid(three);
-		expect(three[2]).toBe(33);
-	});
-	it('hands a removed breed’s share back to the rest', () => {
-		const two = removeSlot([50, 30, 20], 2);
-		expect(two).toHaveLength(2);
-		expectValid(two);
-		expect(removeSlot([100], 0)).toEqual([]);
+describe('evenSplit', () => {
+	it('splits 100 into multiples of 5, larger shares first', () => {
+		expect(evenSplit(1)).toEqual([100]);
+		expect(evenSplit(2)).toEqual([50, 50]);
+		expect(evenSplit(3)).toEqual([35, 35, 30]);
+		expect(evenSplit(4)).toEqual([25, 25, 25, 25]);
+		expect(evenSplit(5)).toEqual([20, 20, 20, 20, 20]);
+		expect(evenSplit(0)).toEqual([]);
 	});
 });
 
-describe('appendRemainder (after the visitor has adjusted sliders)', () => {
+describe('appendRemainder', () => {
 	it('gives a new breed whatever is left, leaving the others alone', () => {
 		expect(appendRemainder([60, 25])).toEqual([60, 25, 15]);
 	});
-	it('starts a new breed at 1 when nothing is left', () => {
-		expect(appendRemainder([60, 40])).toEqual([60, 40, 1]);
-		expect(appendRemainder([80, 40])).toEqual([80, 40, 1]);
+	it('starts a new breed at the smallest step when nothing is left', () => {
+		expect(appendRemainder([60, 40])).toEqual([60, 40, STEP]);
+		expect(appendRemainder([80, 40])).toEqual([80, 40, STEP]);
+	});
+});
+
+describe('snap / stepUp / stepDown', () => {
+	it('snaps to the nearest 5 within [5, max]', () => {
+		expect(snap(33, 90)).toBe(35);
+		expect(snap(32, 90)).toBe(30);
+		expect(snap(1, 90)).toBe(5);
+		expect(snap(97, 90)).toBe(90);
+	});
+	it('steps to the next multiple of 5, so odd values land on round numbers', () => {
+		expect(stepUp(33, 90)).toBe(35);
+		expect(stepUp(35, 90)).toBe(40);
+		expect(stepUp(90, 90)).toBe(90);
+		expect(stepDown(33)).toBe(30);
+		expect(stepDown(30)).toBe(25);
+		expect(stepDown(5)).toBe(5);
 	});
 });
 

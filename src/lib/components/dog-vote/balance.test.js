@@ -54,3 +54,48 @@ describe('invariants under random use', () => {
 		}
 	});
 });
+
+describe('breeds you have set stay put', () => {
+	// `order` lists the rows the visitor has set, oldest first.
+	it('takes the change from untouched breeds only', () => {
+		expect(setPct([60, 20, 20], 1, 30, [0])).toEqual([60, 30, 10]);
+	});
+	it('falls back to the most recently set breed, sparing older ones', () => {
+		expect(setPct([60, 30, 10], 2, 25, [0, 1])).toEqual([60, 15, 25]);
+	});
+	it('drains untouched breeds to 1 before touching set ones', () => {
+		expect(setPct([60, 20, 20], 1, 39, [0])).toEqual([60, 39, 1]);
+		expect(setPct([60, 20, 20], 1, 45, [0])).toEqual([54, 45, 1]);
+	});
+	it('gives freed share to untouched breeds, else the most recently set', () => {
+		expect(setPct([60, 20, 20], 1, 10, [0])).toEqual([60, 10, 30]);
+		expect(setPct([60, 30, 10], 2, 5, [0, 1, 2])).toEqual([60, 35, 5]);
+	});
+	it('adds a new breed by taking from untouched breeds first', () => {
+		expect(addSlot([60, 20, 20], [0])).toEqual([60, 8, 7, 25]);
+	});
+	it('returns a removed breed’s share to untouched breeds first', () => {
+		expect(removeSlot([60, 20, 20], 2, [0])).toEqual([60, 40]);
+	});
+	it('keeps every invariant with random pinning', () => {
+		let seed = 7;
+		const rand = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+		let pcts = [100];
+		/** @type {number[]} */
+		let order = [];
+		for (let i = 0; i < 500; i++) {
+			const r = rand();
+			if (r < 0.2 && pcts.length < 5) pcts = addSlot(pcts, order);
+			else if (r < 0.35 && pcts.length > 1) {
+				const idx = Math.floor(rand() * pcts.length);
+				pcts = removeSlot(pcts, idx, order);
+				order = order.filter((o) => o !== idx).map((o) => (o > idx ? o - 1 : o));
+			} else {
+				const idx = Math.floor(rand() * pcts.length);
+				pcts = setPct(pcts, idx, Math.floor(rand() * 120) - 10, order);
+				order = [...order.filter((o) => o !== idx), idx];
+			}
+			expectValid(pcts);
+		}
+	});
+});

@@ -1,7 +1,7 @@
 <script>
 	import BreedPicker from './BreedPicker.svelte';
 	import PctEditor from './PctEditor.svelte';
-	import { addSlot, removeSlot } from './balance.js';
+	import { setPct, addSlot, removeSlot } from './balance.js';
 	import { makeLookup, PRONOUNS } from './lookup.js';
 
 	const MAX_BREEDS = 5;
@@ -29,6 +29,8 @@
 	let name = $state(initial?.name ?? '');
 	let picks = $state(initial ? initial.guesses.map((g) => ({ ...g })) : []);
 	let comment = $state(initial?.comment ?? '');
+	/** Breeds the visitor has set by hand, oldest first; these resist rebalancing. */
+	let touched = $state(/** @type {string[]} */ ([]));
 	/** @type {{ name?: string, guesses?: string, comment?: string, form?: string }} */
 	let errors = $state({});
 	let submitting = $state(false);
@@ -36,11 +38,18 @@
 	const possessive = $derived(
 		PRONOUNS[pronoun].poss[0].toUpperCase() + PRONOUNS[pronoun].poss.slice(1)
 	);
+	const pinned = $derived(new Set(touched));
+	/** Row indices of hand-set breeds, oldest first, for the balancer. */
+	const order = $derived(touched.map((b) => picks.findIndex((p) => p.breed === b)).filter((i) => i >= 0));
+
 	const renamed = $derived(editing && name.trim().toLowerCase() !== originalName.trim().toLowerCase());
 
 	/** @param {string} breed */
 	function pick(breed) {
-		const pcts = addSlot(picks.map((p) => p.pct));
+		const pcts = addSlot(
+			picks.map((p) => p.pct),
+			order
+		);
 		picks = [...picks, { breed, pct: 0 }].map((p, i) => ({ ...p, pct: pcts[i] }));
 		errors.guesses = undefined;
 	}
@@ -49,13 +58,26 @@
 	function remove(index) {
 		const pcts = removeSlot(
 			picks.map((p) => p.pct),
-			index
+			index,
+			order
 		);
+		touched = touched.filter((b) => b !== picks[index].breed);
 		picks = picks.filter((_, i) => i !== index).map((p, i) => ({ ...p, pct: pcts[i] }));
 	}
 
-	/** @param {number[]} pcts */
-	function rebalance(pcts) {
+	/**
+	 * @param {number} index
+	 * @param {number} value
+	 */
+	function setOne(index, value) {
+		const pcts = setPct(
+			picks.map((p) => p.pct),
+			index,
+			value,
+			order
+		);
+		const breed = picks[index].breed;
+		touched = [...touched.filter((b) => b !== breed), breed];
 		picks = picks.map((p, i) => ({ ...p, pct: pcts[i] }));
 	}
 
@@ -126,8 +148,10 @@
 		{#if picks.length > 0}
 			<section>
 				<span class="label">How much of each?</span>
-				<p class="hint">Slide one and the others adjust so it always adds to 100%.</p>
-				<PctEditor {picks} {lookup} onchange={rebalance} onremove={remove} />
+				<p class="hint">
+					Breeds you set stay put 📌 and the others adjust, so it always adds to 100%.
+				</p>
+				<PctEditor {picks} {pinned} {lookup} onset={setOne} onremove={remove} />
 			</section>
 		{/if}
 		{#if errors.guesses}<p class="error">{errors.guesses}</p>{/if}

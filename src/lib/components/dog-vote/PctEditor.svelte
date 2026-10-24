@@ -1,21 +1,20 @@
 <script>
 	import BreedAvatar from './BreedAvatar.svelte';
-	import { setPct } from './balance.js';
-
-	/** @type {{ picks: Array<{ breed: string, pct: number }>, lookup: (name: string) => { breed: string, group: string, imageUrl: string }, onchange: (pcts: number[]) => void, onremove: (index: number) => void }} */
-	let { picks, lookup, onchange, onremove } = $props();
-
-	const pcts = $derived(picks.map((p) => p.pct));
-	const max = $derived(100 - (picks.length - 1));
-	const total = $derived(pcts.reduce((a, b) => a + b, 0));
 
 	/**
-	 * @param {number} index
-	 * @param {number} value
+	 * @type {{
+	 *   picks: Array<{ breed: string, pct: number }>,
+	 *   pinned: Set<string>,
+	 *   lookup: (name: string) => { breed: string, group: string, imageUrl: string },
+	 *   onset: (index: number, value: number) => void,
+	 *   onremove: (index: number) => void
+	 * }}
 	 */
-	function set(index, value) {
-		onchange(setPct(pcts, index, value));
-	}
+	let { picks, pinned, lookup, onset, onremove } = $props();
+
+	const max = $derived(100 - (picks.length - 1));
+	const total = $derived(picks.reduce((sum, p) => sum + p.pct, 0));
+	const set = onset;
 </script>
 
 <ul class="rows">
@@ -24,7 +23,12 @@
 		<li class="row">
 			<div class="top">
 				<BreedAvatar breed={pick.breed} group={info.group} imageUrl={info.imageUrl} size={40} />
-				<span class="name">{pick.breed}</span>
+				<span class="name">
+					{pick.breed}
+					{#if picks.length > 1 && pinned.has(pick.breed)}
+						<span class="pin" title="You set this one, so it stays put">📌</span>
+					{/if}
+				</span>
 				<button type="button" class="remove" aria-label="Remove {pick.breed}" onclick={() => onremove(i)}>✕</button>
 			</div>
 			<div class="controls">
@@ -90,6 +94,11 @@
 		flex: 1;
 		font-weight: 700;
 		overflow-wrap: anywhere;
+	}
+
+	.pin {
+		font-size: 0.85rem;
+		margin-left: 0.15rem;
 	}
 
 	.remove {

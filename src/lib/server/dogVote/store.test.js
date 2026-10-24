@@ -213,3 +213,17 @@ describe('appendVote', () => {
 		expect(calls.append).toEqual([]);
 	});
 });
+
+describe('appendVote when closed', () => {
+	it('drops the cached page data so the reveal shows on the next load', async () => {
+		const open = fakeSheets();
+		await loadDog({ env, fetch: open.fetch, slug: 'biscuit' }); // cached as not revealed
+		const revealedTabs = { ...tabs, results: [['revealed', 'TRUE'], ['breed_or_group', 'pct']] };
+		const closed = fakeSheets(revealedTabs);
+		expect(
+			await appendVote({ env, fetch: closed.fetch, slug: 'biscuit', vote: { name: 'Ben', guesses: [{ breed: 'Beagle', pct: 100 }], comment: '' } })
+		).toBe('closed');
+		const dog = await loadDog({ env, fetch: closed.fetch, slug: 'biscuit' });
+		expect(dog.results.revealed).toBe(true);
+	});
+});

@@ -172,7 +172,10 @@ export async function appendVote({ env, fetch, slug, vote, now = () => new Date(
 	const { sheetId, token, email } = await connect(env, fetch, slug);
 	try {
 		const results = parseResults(await getRange({ token, sheetId, range: 'results!A1:B2', fetch }));
-		if (results.revealed) return 'closed';
+		if (results.revealed) {
+			cache.delete(slug); // so the next page load shows the reveal
+			return 'closed';
+		}
 		await appendRow({
 			token,
 			sheetId,

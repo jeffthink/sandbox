@@ -214,3 +214,10 @@ describe('crowdView', () => {
 		expect(crowdView(votes, null)).toEqual({ count: 2, voted: false });
 	});
 });
+
+describe('parseVoteRows with repeated breeds', () => {
+	it('merges hand-edited duplicate breeds in one guess', () => {
+		const rows = [['2026-10-01T10:00:00Z', 'Ava', '[{"breed":"Beagle","pct":50},{"breed":"beagle ","pct":50}]', '']];
+		expect(parseVoteRows(rows)[0].guesses).toEqual([{ breed: 'Beagle', pct: 100 }]);
+	});
+});

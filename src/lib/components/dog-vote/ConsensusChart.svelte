@@ -2,6 +2,7 @@
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
 	import { groupStyle } from './groups.js';
+	import { fitLabel } from './fitLabel.js';
 
 	const OTHER_COLOR = '#b8ada0';
 	const ROW = 46;
@@ -65,7 +66,13 @@
 			.select('.label')
 			.attr('x', 0)
 			.attr('y', 16)
-			.text((d) => `${d.other ? '' : groupStyle(lookup(d.breed).group).emoji + ' '}${d.breed}${mine.has(d.breed.toLowerCase()) ? ' ★' : ''}`);
+			.each(function (d) {
+				const full = `${d.other ? '' : groupStyle(lookup(d.breed).group).emoji + ' '}${d.breed}${mine.has(d.breed.toLowerCase()) ? ' ★' : ''}`;
+				this.textContent = fitLabel(full, w, (t) => {
+					this.textContent = t;
+					return this.getComputedTextLength();
+				});
+			});
 		rows
 			.select('.track')
 			.attr('x', 0)
@@ -115,10 +122,12 @@
 <style>
 	.chart {
 		width: 100%;
+		min-width: 0;
 	}
 
 	svg {
 		display: block;
+		max-width: 100%;
 		overflow: visible;
 	}
 

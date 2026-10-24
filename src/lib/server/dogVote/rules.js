@@ -113,14 +113,17 @@ function parseGuesses(json) {
 		return null;
 	}
 	if (!Array.isArray(parsed)) return null;
-	/** @type {Guess[]} */
-	const guesses = [];
+	/** @type {Map<string, Guess>} hand-edited cells may repeat a breed; merge them */
+	const byBreed = new Map();
 	for (const g of parsed) {
 		const pct = typeof g?.pct === 'string' && g.pct.trim() !== '' ? Number(g.pct) : g?.pct;
 		if (typeof g?.breed !== 'string' || typeof pct !== 'number' || !Number.isFinite(pct)) return null;
-		guesses.push({ breed: g.breed, pct });
+		const key = normalizeName(g.breed);
+		const prev = byBreed.get(key);
+		if (prev) prev.pct += pct;
+		else byBreed.set(key, { breed: g.breed.trim(), pct });
 	}
-	return guesses;
+	return [...byBreed.values()];
 }
 
 /**

@@ -116,6 +116,7 @@
 	}
 
 	.dogvote :global(.card) {
+		min-width: 0;
 		background: var(--card);
 		border-radius: var(--radius);
 		box-shadow: var(--shadow);
@@ -123,6 +124,8 @@
 	}
 
 	.dogvote :global(.wrap) {
+		/* minmax(0, …) stops grid tracks from growing to fit wide SVG content */
+		grid-template-columns: minmax(0, 1fr);
 		max-width: 560px;
 		margin: 0 auto;
 		padding: 0 16px 48px;

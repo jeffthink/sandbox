@@ -2,6 +2,7 @@
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
 	import { groupStyle } from './groups.js';
+	import { fitLabel } from './fitLabel.js';
 
 	const ROW = 54;
 	const BAR = 18;
@@ -75,7 +76,12 @@
 		g.append('text')
 			.attr('class', 'label')
 			.attr('y', 18)
-			.text((d) => `${colorFor(d.name).emoji} ${d.name}`)
+			.each(function (d) {
+				this.textContent = fitLabel(`${colorFor(d.name).emoji} ${d.name}`, w, (t) => {
+					this.textContent = t;
+					return this.getComputedTextLength();
+				});
+			})
 			.attr('opacity', reduce ? 1 : 0)
 			.transition()
 			.delay((_, i) => delay(i))
@@ -125,10 +131,12 @@
 <style>
 	.chart {
 		width: 100%;
+		min-width: 0;
 	}
 
 	svg {
 		display: block;
+		max-width: 100%;
 		overflow: visible;
 	}
 

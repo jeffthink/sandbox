@@ -118,3 +118,21 @@ describe('buildReveal', () => {
 		});
 	});
 });
+
+describe('floating-point ties', () => {
+	it('treats scores that display the same as tied, so the earlier vote wins', () => {
+		const fractional = [
+			{ name: 'Beagle', pct: 10.1 },
+			{ name: 'Rat Terrier', pct: 20.2 },
+			{ name: 'Poodle', pct: 30.3 }
+		];
+		const early = vote('Early', '2026-10-01T00:00:00Z', [
+			{ breed: 'Beagle', pct: 50 },
+			{ breed: 'Rat Terrier', pct: 50 }
+		]);
+		const late = vote('Late', '2026-10-02T00:00:00Z', [{ breed: 'Poodle', pct: 100 }]);
+		const r = buildReveal([late, early], { revealed: true, rows: fractional }, breeds);
+		expect(r.leaderboard.map((v) => v.name)).toEqual(['Early', 'Late']);
+		expect(r.leaderboard[0].score).toBe(30.3);
+	});
+});

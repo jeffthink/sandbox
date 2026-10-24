@@ -55,6 +55,7 @@
 <style>
 	.wrap {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 1rem;
 	}
 
@@ -91,6 +92,7 @@
 
 	.crowd {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 0.6rem;
 	}
 
@@ -102,6 +104,7 @@
 
 	.everyone {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 0.75rem;
 		margin-top: 0.5rem;
 	}

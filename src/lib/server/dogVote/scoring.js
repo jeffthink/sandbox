@@ -59,7 +59,9 @@ export function scoreGuess(guesses, results, breeds) {
 		}
 		score += Math.min(inGroup, row.pct);
 	}
-	return Math.min(score, 100);
+	// Round to the displayed precision so float noise (10.1 + 20.2 ≠ 30.3)
+	// can't break ties that look equal on screen.
+	return Math.round(Math.min(score, 100) * 10) / 10;
 }
 
 /**

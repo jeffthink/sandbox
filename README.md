@@ -33,25 +33,28 @@ This will start a Vite development server on port 5173 (dev mode) or port 4173 (
 ```
 src/
 ├── routes/
-│   ├── +page.svelte                        # Main listing page
-│   ├── +layout.svelte                      # Shared layout with navigation
-│   ├── family-math/
-│   │   ├── linear/+page.svelte             # Linear growth visualization
-│   │   ├── linear-embed/+page.svelte       # Embed version
-│   │   ├── quadratic/+page.svelte          # Quadratic relationships
-│   │   ├── quadratic-embed/+page.svelte
-│   │   ├── exponential/+page.svelte        # Exponential scenarios
-│   │   ├── exponential-embed/+page.svelte
-│   │   ├── factorial/+page.svelte          # Factorial arrangements
-│   │   └── factorial-embed/+page.svelte
-│   └── swim-tracker/
-│       ├── +page.svelte                    # Public demo (synthetic data)
-│       └── family/+page.svelte             # Gated family results page
+│   ├── +layout.svelte                      # Bare root layout (just a slot)
+│   ├── (sandbox)/                          # Route group: sandbox pages share its layout
+│   │   ├── +layout.svelte                  # Sandbox layout with navigation
+│   │   ├── +page.svelte                    # Main listing page
+│   │   ├── family-math/
+│   │   │   ├── linear/+page.svelte         # Linear growth visualization
+│   │   │   ├── linear-embed/+page.svelte   # Embed version
+│   │   │   └── ...                         # quadratic, exponential, factorial (+ embeds)
+│   │   └── swim-tracker/
+│   │       ├── +page.svelte                # Public demo (synthetic data)
+│   │       └── [family]/+page.svelte       # Gated family results page
+│   ├── (dog-vote)/dog-vote/                # Route group with its own layout (no sandbox nav)
+│   │   ├── +page.server.js                 # Redirects to the default dog
+│   │   └── [dog]/+page.svelte              # The guessing game
+│   └── api/                                # Server endpoints (swim data, dog votes)
 └── lib/
     ├── components/
     │   ├── FamilySlider.svelte             # Shared slider component
     │   ├── visualizations/                 # Family math visualization components
-    │   └── swim-tracker/                   # Swim tracker components
+    │   ├── swim-tracker/                   # Swim tracker components
+    │   └── dog-vote/                       # Breed-guessing game components
+    ├── server/                             # Server-only code (swim gate, dog-vote Sheets store)
     └── utils/                              # Data processing utilities
 ```
 
@@ -105,6 +108,63 @@ A swim meet tracker with a public demo and a password-protected family results p
 - **Features:** Summer highlights dashboard, race results table, time progress charts, meet performance tracking
 - **Demo data:** Synthetic, fictional data bundled in `src/lib/data/demoSwimData.js` — no network calls, no password needed
 - **Family page:** Real results fetched server-side via `/api/swim-data` (a Vercel serverless function). Requires the correct `SWIM_PASSWORD`. Google Sheet CSV URLs (`MEETS_CSV_URL`, `RACES_CSV_URL`, `SWIMMERS_CSV_URL`) are kept in server-side env vars and are never shipped to the browser. See `src/routes/swim-tracker/README.md` and `.env.example` for setup instructions.
+
+### Guess the Breed (Dog Vote)
+**Routes:** `/dog-vote` (redirects to the default dog) | `/dog-vote/<slug>` (one game per dog)
+
+A mobile-first game for guessing a mystery mutt's breed mix before a DNA test (e.g. Wisdom Panel) comes back. Visitors pick 1–5 breeds from the sheet's list (by searching or browsing a photo gallery) and percentages in steps of 5 that add up to 100, and only see the crowd's average and everyone's guesses after guessing. When the owner flips the reveal switch, the page shows the real breakdown with an animated reveal, a scored leaderboard and fun callouts.
+
+- **Technology:** SvelteKit + D3 + the Google Sheets API, called server-side with a service account (no extra npm packages). Nothing Google-related reaches the browser.
+- **Several dogs:** each dog is a slug with its own Google Sheet. Adding a dog means a sheet, an env var and a photo folder, with no code changes.
+- **Scoring:** for each breed or group in the real results, add min(guessed %, actual %), for a score of 0–100. If a result is a group (e.g. "Terrier group"), guessed breeds in that group count toward it, using the `breeds` tab. Leaderboard ties go to whoever's counted guess came first.
+- **Design notes:** `docs/superpowers/specs/2026-10-23-dog-vote-design.md`
+
+#### Setup
+
+1. **Create a Google service account** (one-time; it can serve every dog):
+   1. In [Google Cloud Console](https://console.cloud.google.com), create a project and enable the **Google Sheets API**.
+   2. Go to **IAM & Admin → Service Accounts → Create service account** (no roles needed).
+   3. Open it, then **Keys → Add key → JSON**. Keep the downloaded file out of the repo.
+2. **Create the dog's Google Sheet** with these four tabs. Headers go in row 1 and are matched case-insensitively.
+
+   **`settings`**: key/value rows
+
+   | key | value |
+   |---|---|
+   | dog_name | Biscuit |
+   | pronoun | he / she / they |
+   | intro | Optional text shown on the landing page |
+   | photos | `1.jpg, 2.jpg` (files in `static/dog-vote/<slug>/`, or full `https://` URLs; the first is the hero) |
+
+   **`votes`**: headers `timestamp | name | guesses | comment`. The app appends rows and never edits them. Each name's latest row counts, matched case-insensitively.
+
+   **`breeds`**: headers `breed | group | image_url` (`image_url` is optional). Paste `docs/dog-vote/breeds-seed.csv` (~70 common breeds) to start. The groups follow Wisdom Panel's: Asian and Oceanian, Companion, Guard, Herding, Hound, Middle Eastern and African, Mountain Dogs, Sighthound, Sporting, Street Dogs, Terrier, Wild Canids. The seed list's breed-to-group assignments are best guesses, so edit them freely.
+
+   **`results`**: a fixed layout, with nothing shown until B1 is TRUE:
+
+   | | A | B |
+   |---|---|---|
+   | 1 | revealed | FALSE |
+   | 2 | breed_or_group | pct |
+   | 3+ | e.g. Beagle | e.g. 37.5 |
+
+3. **Share the sheet** with the service account's email (`…@….iam.gserviceaccount.com`) as **Editor**.
+4. **Set env vars** in `.env` for local use, and in Vercel project settings for production (see `.env.example`):
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`: the JSON key's `client_email`
+   - `GOOGLE_PRIVATE_KEY`: the JSON key's `private_key`, with its `\n` sequences kept, in double quotes
+   - `DOGVOTE_<SLUG>_SHEET_ID`: the id between `/d/` and `/edit` in the sheet URL
+   - `DOGVOTE_DEFAULT_SLUG`: where `/dog-vote` redirects
+5. **Add photos** to `static/dog-vote/<slug>/`. This repo is public, so **resize each photo and strip its metadata first**: phone photos carry GPS coordinates. On macOS, re-encoding through ImageIO drops all metadata, for example with a small Swift script that uses `CGImageSourceCreateThumbnailAtIndex` (max 1600px) and `CGImageDestinationAddImage` with no properties. Check the file bytes (`strings photo.jpg | grep -i gps`), not Spotlight, which caches old metadata.
+
+In `npm run dev`, setup problems show a message naming exactly what's wrong (missing env var, missing tab or header, sheet not shared). In production, visitors only see "This game isn't set up yet."
+
+#### Adding another dog
+1. Create its sheet (step 2) and share it with the same service account.
+2. Set `DOGVOTE_<SLUG>_SHEET_ID` (e.g. `DOGVOTE_BISCUIT_SHEET_ID`).
+3. Add photos to `static/dog-vote/<slug>/` and list them in its `settings` tab. Its page is `/dog-vote/<slug>`.
+
+#### Revealing the results
+Fill in `results` rows 3 and below with the DNA breakdown (breeds or groups, as on the report), then set B1 to TRUE. Within about 15 seconds everyone sees the reveal and voting closes.
 
 ## Embedding Support
 

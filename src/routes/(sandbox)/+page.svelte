@@ -126,6 +126,17 @@
 	</div>
 </div>
 
+<div class="category-section">
+	<h2>Games</h2>
+	<div class="experiments">
+		<div class="experiment-card">
+			<h3>Guess the Breed</h3>
+			<p>Friends guess a mystery mutt's breed mix before the DNA test comes back, then see the crowd's consensus and a scored leaderboard at the reveal</p>
+			<a href="/dog-vote" data-sveltekit-reload>Explore →</a>
+		</div>
+	</div>
+</div>
+
 <div class="footer">
 	<p>Built with SvelteKit and D3.js • <a href="https://github.com/jeffthink/interactive-sandbox" style="color: inherit;">View Source</a></p>
 </div>

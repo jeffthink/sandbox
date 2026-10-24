@@ -12,10 +12,11 @@
 	 *   crowdError: string,
 	 *   lookup: (name: string) => { breed: string, group: string, imageUrl: string },
 	 *   onedit: () => void,
+	 *   onreset: () => void,
 	 *   shareUrl: string
 	 * }}
 	 */
-	let { settings, mine, crowd, crowdError, lookup, onedit, shareUrl } = $props();
+	let { settings, mine, crowd, crowdError, lookup, onedit, onreset, shareUrl } = $props();
 </script>
 
 <div class="wrap">
@@ -54,6 +55,11 @@
 			<CrowdList votes={crowd.votes} {lookup} myName={mine.name} />
 		</section>
 	{/if}
+
+	<p class="reset">
+		Not {mine.name}? <button class="link" onclick={onreset}>Start over as someone else</button>
+		<span class="note">{mine.name}’s guess stays saved.</span>
+	</p>
 </div>
 
 <style>
@@ -111,5 +117,30 @@
 		grid-template-columns: minmax(0, 1fr);
 		gap: 0.75rem;
 		margin-top: 0.5rem;
+	}
+
+	.reset {
+		margin: 1rem 0 0;
+		text-align: center;
+		color: var(--ink-soft);
+		font-size: 0.95rem;
+	}
+
+	.link {
+		min-height: 44px;
+		padding: 0 0.25rem;
+		background: none;
+		border: 0;
+		color: var(--accent-dark);
+		font: inherit;
+		font-weight: 700;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.note {
+		display: block;
+		color: var(--ink-muted);
+		font-size: 0.85rem;
 	}
 </style>

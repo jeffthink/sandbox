@@ -79,6 +79,16 @@
 		window.scrollTo({ top: 0 });
 	}
 
+	// Forget this browser's guess (not the vote itself) so someone else can play.
+	function reset() {
+		clearMine(data.slug);
+		mine = null;
+		crowd = null;
+		editing = false;
+		view = 'landing';
+		window.scrollTo({ top: 0 });
+	}
+
 	function start() {
 		view = 'form';
 		window.scrollTo({ top: 0 });
@@ -122,6 +132,7 @@
 		{crowdError}
 		{lookup}
 		shareUrl={$page.url.origin + $page.url.pathname}
+		onreset={reset}
 		onedit={() => {
 			editing = true;
 			view = 'form';

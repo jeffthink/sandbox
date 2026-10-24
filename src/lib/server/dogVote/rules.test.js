@@ -9,10 +9,11 @@ import {
 	crowdView
 } from './rules.js';
 
-const breeds = [
-	{ breed: 'Beagle', group: 'Scent Hound group', imageUrl: '' },
-	{ breed: 'Boxer', group: 'Working group', imageUrl: '' }
-];
+const breeds = ['Beagle', 'Boxer', 'Pug', 'Akita', 'Vizsla'].map((breed) => ({
+	breed,
+	group: 'Hound group',
+	imageUrl: ''
+}));
 
 /** @param {Record<string, unknown>} overrides */
 function input(overrides = {}) {
@@ -32,14 +33,14 @@ describe('normalizeName / normalizeGroup', () => {
 });
 
 describe('validateVote', () => {
-	it('trims the name and canonicalizes listed breeds, keeping free text', () => {
+	it('trims the name and canonicalizes listed breeds', () => {
 		expect(
 			validateVote(
 				{
 					name: '  Ava ',
 					guesses: [
 						{ breed: 'beagle ', pct: 60 },
-						{ breed: 'Mystery Mutt', pct: 40 }
+						{ breed: 'BOXER', pct: 40 }
 					],
 					comment: ''
 				},
@@ -51,11 +52,25 @@ describe('validateVote', () => {
 				name: 'Ava',
 				guesses: [
 					{ breed: 'Beagle', pct: 60 },
-					{ breed: 'Mystery Mutt', pct: 40 }
+					{ breed: 'Boxer', pct: 40 }
 				],
 				comment: ''
 			}
 		});
+	});
+
+	it('rejects a breed that is not on the list', () => {
+		const result = validateVote(
+			input({
+				guesses: [
+					{ breed: 'Beagle', pct: 60 },
+					{ breed: 'Mystery Mutt', pct: 40 }
+				]
+			}),
+			breeds
+		);
+		expect(result.ok).toBe(false);
+		expect(result.errors.guesses).toMatch(/Mystery Mutt/);
 	});
 
 	it('keeps spreadsheet-formula-looking text verbatim', () => {

@@ -20,7 +20,7 @@ const TOP_N = 8;
  * Validate a submitted vote. Every rule here is enforced server-side; the
  * client mirrors them only for convenience.
  * @param {unknown} input
- * @param {Breed[]} breeds - listed breeds, used to canonicalize spelling
+ * @param {Breed[]} breeds - the breeds tab; guesses must come from this list
  * @returns {{ ok: true, vote: { name: string, guesses: Guess[], comment: string } } | { ok: false, errors: { name?: string, guesses?: string, comment?: string } }}
  */
 export function validateVote(input, breeds) {
@@ -62,12 +62,16 @@ export function validateVote(input, breeds) {
 				break;
 			}
 			const key = normalizeName(breed);
+			if (!canonical.has(key)) {
+				errors.guesses = `"${breed}" isn't on the breed list.`;
+				break;
+			}
 			if (seen.has(key)) {
 				errors.guesses = `"${breed}" is listed twice.`;
 				break;
 			}
 			seen.add(key);
-			guesses.push({ breed: canonical.get(key) ?? breed, pct });
+			guesses.push({ breed: /** @type {string} */ (canonical.get(key)), pct });
 		}
 		if (!errors.guesses) {
 			const total = guesses.reduce((sum, g) => sum + g.pct, 0);

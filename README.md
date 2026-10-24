@@ -112,7 +112,7 @@ A swim meet tracker with a public demo and a password-protected family results p
 ### Guess the Breed (Dog Vote)
 **Routes:** `/dog-vote` (redirects to the default dog) | `/dog-vote/<slug>` (one game per dog)
 
-A mobile-first game for guessing a mystery mutt's breed mix before a DNA test (e.g. Wisdom Panel) comes back. Visitors pick 1–5 breeds and percentages that add up to 100, and only see the crowd's average and everyone's guesses after guessing. When the owner flips the reveal switch, the page shows the real breakdown with an animated reveal, a scored leaderboard and fun callouts.
+A mobile-first game for guessing a mystery mutt's breed mix before a DNA test (e.g. Wisdom Panel) comes back. Visitors pick 1–5 breeds from the sheet's list (by searching or browsing a photo gallery) and percentages in steps of 5 that add up to 100, and only see the crowd's average and everyone's guesses after guessing. When the owner flips the reveal switch, the page shows the real breakdown with an animated reveal, a scored leaderboard and fun callouts.
 
 - **Technology:** SvelteKit + D3 + the Google Sheets API, called server-side with a service account (no extra npm packages). Nothing Google-related reaches the browser.
 - **Several dogs:** each dog is a slug with its own Google Sheet. Adding a dog means a sheet, an env var and a photo folder, with no code changes.

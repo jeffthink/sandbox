@@ -1,5 +1,6 @@
 <script>
 	import BreedPicker from './BreedPicker.svelte';
+	import BreedBrowser from './BreedBrowser.svelte';
 	import PctEditor from './PctEditor.svelte';
 	import { evenSplit, appendRemainder, snap, totalStatus, STEP } from './balance.js';
 	import { makeLookup, PRONOUNS } from './lookup.js';
@@ -37,6 +38,7 @@
 	/** @type {{ name?: string, guesses?: string, comment?: string, form?: string }} */
 	let errors = $state({});
 	let submitting = $state(false);
+	let browsing = $state(false);
 
 	const possessive = $derived(
 		PRONOUNS[pronoun].poss[0].toUpperCase() + PRONOUNS[pronoun].poss.slice(1)
@@ -51,6 +53,13 @@
 		const pcts = adjusted ? appendRemainder(current) : evenSplit(current.length + 1);
 		picks = [...picks, { breed, pct: 0 }].map((p, i) => ({ ...p, pct: pcts[i] }));
 		errors.guesses = undefined;
+	}
+
+	/** Select or unselect a breed from the browse gallery. @param {string} breed */
+	function toggle(breed) {
+		const index = picks.findIndex((p) => p.breed === breed);
+		if (index >= 0) remove(index);
+		else if (picks.length < MAX_BREEDS) pick(breed);
 	}
 
 	/** @param {number} index */
@@ -132,8 +141,14 @@
 
 		<section>
 			<span class="label">Pick 1–{MAX_BREEDS} breeds</span>
-			<p class="hint">Can’t find it? Type it in and add it.</p>
-			<BreedPicker {breeds} picked={picks.map((p) => p.breed)} max={MAX_BREEDS} onpick={pick} />
+			<p class="hint">Search by name, or browse photos of every breed.</p>
+			<BreedPicker
+				{breeds}
+				picked={picks.map((p) => p.breed)}
+				max={MAX_BREEDS}
+				onpick={pick}
+				onbrowse={() => (browsing = true)}
+			/>
 		</section>
 
 		{#if picks.length > 0}
@@ -177,6 +192,16 @@
 		</button>
 	</form>
 </div>
+
+{#if browsing}
+	<BreedBrowser
+		{breeds}
+		picked={picks.map((p) => p.breed)}
+		max={MAX_BREEDS}
+		ontoggle={toggle}
+		onclose={() => (browsing = false)}
+	/>
+{/if}
 
 <style>
 	.head {

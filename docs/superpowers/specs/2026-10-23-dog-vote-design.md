@@ -170,8 +170,12 @@ The sheet sets the photo order because the server can't reliably list the `stati
 1. **Name**: required, trimmed, at most 50 characters.
 2. **Breeds (1–5)**: a searchable picker over the `breeds` tab.
    - Each option shows the breed image, or the group emoji if there's no image.
-   - If the search text doesn't match, offer "Add '<text>'" as a free-text breed.
-   - Free-text breeds have no group.
+   - **List only.** Breeds must come from the `breeds` tab. With no match, the picker says so and points to Browse. The server rejects any breed not on the list. *(Owner decision, 2026-10-24: custom breeds would muddy the results. Votes saved earlier with a custom breed still load, display and score.)*
+   - **Browse all breeds**: a button under the search box opens a full-screen gallery.
+     - It shows large square photos in a 2-column grid on phones, grouped by breed group (sheet order, alphabetical within each group), with a row of group shortcuts at the top.
+     - Tap a photo to select it (✓) and tap again to unselect.
+     - A top bar shows "N of 5 picked" and a Done button. At 5, the other photos dim and a hint says to tap a ✓ to swap one out.
+     - Escape or Done closes it, and the page behind doesn't scroll while it's open.
    - Duplicates are blocked (case-insensitive).
 3. **Percentages**: each chosen breed gets a slider plus −/+ buttons, all moving in **steps of 5** (minimum 5%).
    - **Even split until you adjust.** Until the visitor moves a slider, breeds split evenly in 5s: 50/50, 35/35/30, 25 × 4, 20 × 5.
@@ -231,7 +235,7 @@ Normalize names (trim, lowercase, collapse whitespace). For one guess:
 
 1. **Breed rows first.** For each actual *breed* row: `score += min(guessed % for that breed, actual %)`. Mark the matched guessed percentage as used.
 2. **Then group rows.** For each actual *group* row G: take the guessed breeds whose `breeds`-tab group is G, sum their **unused** percentage (guessed minus any already used in step 1), then `score += min(that sum, actual %)`.
-3. Free-text breeds with no group only match exact breed rows.
+3. Breeds with no known group (only possible in votes saved before guesses were limited to the list) only match exact breed rows.
 4. Round the score to one decimal for display.
 
 The "unused" rule is my addition. It stops a guess being double-counted when the results contain both a specific breed and its group (e.g. "Jack Russell Terrier 30%" and "Terrier group 20%"), which keeps the score at 100 or below. When there's no such overlap, it matches the spec exactly.

@@ -2,8 +2,8 @@
 	import BreedAvatar from './BreedAvatar.svelte';
 	import { normalizeName } from '../../dogVote/normalize.js';
 
-	/** @type {{ breeds: Array<{ breed: string, group: string, imageUrl: string }>, picked: string[], max: number, onpick: (breed: string) => void }} */
-	let { breeds, picked, max, onpick } = $props();
+	/** @type {{ breeds: Array<{ breed: string, group: string, imageUrl: string }>, picked: string[], max: number, onpick: (breed: string) => void, onbrowse: () => void }} */
+	let { breeds, picked, max, onpick, onbrowse } = $props();
 
 	let query = $state('');
 	/** @type {HTMLInputElement | undefined} */
@@ -20,8 +20,6 @@
 					.slice(0, 8)
 			: []
 	);
-	const exact = $derived(breeds.some((b) => normalizeName(b.breed) === q) || pickedKeys.has(q));
-	const offerCustom = $derived(q.length > 0 && !exact && query.trim().length <= 60);
 
 	/** Prefer breeds whose name (or a word in it) starts with the query. @param {string} name */
 	function rank(name) {
@@ -43,7 +41,6 @@
 		if (e.key !== 'Enter') return;
 		e.preventDefault();
 		if (matches.length > 0) choose(matches[0].breed);
-		else if (offerCustom) choose(query.trim());
 	}
 </script>
 
@@ -62,7 +59,7 @@
 		placeholder={full ? `${max} breeds max — remove one to swap` : 'Search breeds, e.g. husky'}
 	/>
 
-	{#if matches.length > 0 || offerCustom}
+	{#if matches.length > 0}
 		<ul class="results" role="listbox" aria-label="Matching breeds">
 			{#each matches as b (b.breed)}
 				<li>
@@ -72,16 +69,12 @@
 					</button>
 				</li>
 			{/each}
-			{#if offerCustom}
-				<li>
-					<button type="button" class="custom" onclick={() => choose(query.trim())}>
-						<span class="plus" aria-hidden="true">＋</span>
-						<span>Add “{query.trim()}”</span>
-					</button>
-				</li>
-			{/if}
 		</ul>
+	{:else if q}
+		<p class="none">No breed matches “{query.trim()}”. Try browsing instead.</p>
 	{/if}
+
+	<button type="button" class="browse" onclick={onbrowse}>🐶 Browse all breeds</button>
 </div>
 
 <style>
@@ -137,18 +130,26 @@
 		background: var(--accent-soft);
 	}
 
-	.custom {
-		color: var(--accent-dark);
-		font-weight: 700;
+	.none {
+		margin: 0.5rem 0 0;
+		font-size: 0.92rem;
+		color: var(--ink-soft);
 	}
 
-	.plus {
-		width: 36px;
-		height: 36px;
-		display: grid;
-		place-items: center;
-		border-radius: 50%;
+	.browse {
+		width: 100%;
+		min-height: 48px;
+		margin-top: 0.6rem;
 		border: 2px dashed var(--accent);
+		border-radius: 14px;
+		background: transparent;
+		color: var(--accent-dark);
+		font-weight: 800;
+		cursor: pointer;
+	}
+
+	.browse:active {
+		background: var(--accent-soft);
 	}
 
 	.visually-hidden {

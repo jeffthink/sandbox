@@ -1,8 +1,11 @@
 <script>
 	import PhotoHero from './PhotoHero.svelte';
+	import { PRONOUNS } from './lookup.js';
 
 	/** @type {{ settings: { dogName: string, pronoun: 'he'|'she'|'they', intro: string, photos: string[] }, count: number, onstart: () => void }} */
 	let { settings, count, onstart } = $props();
+
+	const poss = $derived(PRONOUNS[settings.pronoun].poss);
 </script>
 
 <PhotoHero photos={settings.photos} alt="Photo of {settings.dogName}" />
@@ -13,6 +16,12 @@
 		<h1 class="title">{settings.dogName}'s Mystery Mix</h1>
 		{#if settings.intro}
 			<p class="blurb own">{settings.intro}</p>
+		{:else}
+			<p class="blurb">
+				We sent off a DNA test to find out which breeds make up {settings.dogName}. Before the
+				results come back, take your best guess at {poss} mix, then see how it stacks up against
+				everyone else’s.
+			</p>
 		{/if}
 		<button class="btn start" onclick={onstart}>🐾 Make your guess</button>
 		<p class="count">

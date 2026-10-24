@@ -5,8 +5,9 @@
 	import Landing from '$lib/components/dog-vote/Landing.svelte';
 	import GuessForm from '$lib/components/dog-vote/GuessForm.svelte';
 	import SetupError from '$lib/components/dog-vote/SetupError.svelte';
-	import { loadMine, saveMine } from '$lib/components/dog-vote/storage.js';
-	import { PRONOUNS } from '$lib/components/dog-vote/lookup.js';
+	import CrowdView from '$lib/components/dog-vote/CrowdView.svelte';
+	import { loadMine, saveMine, clearMine } from '$lib/components/dog-vote/storage.js';
+	import { makeLookup } from '$lib/components/dog-vote/lookup.js';
 
 	let { data } = $props();
 
@@ -17,8 +18,10 @@
 	/** @type {any} */
 	let crowd = $state(null);
 	let editing = $state(false);
+	let crowdError = $state('');
 
 	const settings = $derived(data.settings);
+	const lookup = $derived(makeLookup(data.breeds ?? []));
 	const title = $derived(settings ? `What's in ${settings.dogName}?` : 'Guess the breed');
 	const ogImage = $derived(
 		settings?.photos?.[0]
@@ -29,8 +32,40 @@
 	onMount(() => {
 		if (data.setupError || data.revealed) return;
 		mine = loadMine(data.slug);
-		if (mine) view = 'crowd';
+		if (mine) {
+			view = 'crowd';
+			refreshCrowd(mine.name);
+		}
 	});
+
+	/** @param {string} name */
+	async function refreshCrowd(name) {
+		crowdError = '';
+		try {
+			const res = await fetch(`/api/dog-vote/${data.slug}/crowd?name=${encodeURIComponent(name)}`);
+			if (!res.ok) throw new Error(String(res.status));
+			const body = await res.json();
+			if (!body.voted) {
+				// Their vote is gone from the sheet (e.g. removed by the owner): start over.
+				clearMine(data.slug);
+				mine = null;
+				view = 'landing';
+				return;
+			}
+			crowd = body;
+			// Same name may have re-voted from another device; show the vote that counts.
+			const key = name.trim().toLowerCase().replace(/\s+/g, ' ');
+			const current = body.votes.find(
+				(/** @type {any} */ v) => v.name.trim().toLowerCase().replace(/\s+/g, ' ') === key
+			);
+			if (current && mine) {
+				mine = { ...mine, name: current.name, guesses: current.guesses, comment: current.comment };
+				saveMine(data.slug, mine);
+			}
+		} catch {
+			crowdError = 'Couldn’t load the crowd right now. Pull to refresh in a bit.';
+		}
+	}
 
 	/** @param {any} response */
 	function onsubmitted(response) {
@@ -77,10 +112,18 @@
 		onclosed={() => invalidateAll()}
 	/>
 {:else if view === 'crowd'}
-	<div class="wrap">
-		<p>Thanks, {mine?.name}! (crowd view coming in step 9)</p>
-		<button class="btn" onclick={() => ((editing = true), (view = 'form'))}>Edit my guess</button>
-	</div>
+	<CrowdView
+		{settings}
+		mine={/** @type {any} */ (mine)}
+		{crowd}
+		{crowdError}
+		{lookup}
+		onedit={() => {
+			editing = true;
+			view = 'form';
+			window.scrollTo({ top: 0 });
+		}}
+	/>
 {:else}
 	<Landing {settings} count={data.count} onstart={start} />
 {/if}

@@ -58,9 +58,9 @@
 		box-sizing: border-box;
 	}
 
-	.dogvote :global(h1),
-	.dogvote :global(h2),
-	.dogvote :global(h3) {
+	/* :where() gives this reset zero specificity so components' own heading
+	   styles (e.g. a margin on .title) always win. */
+	:where(.dogvote) :global(:where(h1, h2, h3)) {
 		font-family: var(--font-display);
 		font-weight: 600;
 		line-height: 1.15;

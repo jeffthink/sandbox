@@ -10,7 +10,7 @@
 <div class="wrap">
 	<div class="card intro">
 		<p class="kicker">🧬 DNA results are on the way</p>
-		<h1>Guess {settings.dogName}'s mix</h1>
+		<h1 class="title">{settings.dogName}'s Mystery Mix</h1>
 		{#if settings.intro}
 			<p class="blurb own">{settings.intro}</p>
 		{/if}
@@ -42,13 +42,14 @@
 		font-size: 0.9rem;
 	}
 
-	h1 {
+	/* A class (not bare h1) so it outranks the layout's shared heading reset. */
+	.title {
 		font-size: clamp(2rem, 9vw, 2.6rem);
-		margin-bottom: 0.75rem;
+		margin: 0 0 1.5rem;
 	}
 
 	.blurb {
-		margin: 0 0 0.75rem;
+		margin: -0.75rem 0 1.5rem;
 		color: var(--ink-soft);
 	}
 
@@ -58,7 +59,6 @@
 
 	.start {
 		width: 100%;
-		margin-top: 0.5rem;
 	}
 
 	.count {

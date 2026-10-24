@@ -6,6 +6,7 @@
 	import GuessForm from '$lib/components/dog-vote/GuessForm.svelte';
 	import SetupError from '$lib/components/dog-vote/SetupError.svelte';
 	import CrowdView from '$lib/components/dog-vote/CrowdView.svelte';
+	import RevealView from '$lib/components/dog-vote/RevealView.svelte';
 	import { loadMine, saveMine, clearMine } from '$lib/components/dog-vote/storage.js';
 	import { makeLookup } from '$lib/components/dog-vote/lookup.js';
 
@@ -30,8 +31,9 @@
 	);
 
 	onMount(() => {
-		if (data.setupError || data.revealed) return;
+		if (data.setupError) return;
 		mine = loadMine(data.slug);
+		if (data.revealed) return;
 		if (mine) {
 			view = 'crowd';
 			refreshCrowd(mine.name);
@@ -99,7 +101,7 @@
 {#if data.setupError}
 	<SetupError message={data.setupError} />
 {:else if data.revealed}
-	<div class="wrap"><p>Results are in!</p></div>
+	<RevealView {settings} reveal={data.reveal} {lookup} myName={mine?.name ?? ''} />
 {:else if view === 'form'}
 	<GuessForm
 		slug={data.slug}

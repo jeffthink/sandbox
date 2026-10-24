@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { slide } from 'svelte/transition';
 	import { groupBreeds } from './lookup.js';
 	import { normalizeName } from '../../dogVote/normalize.js';
 
@@ -18,8 +19,30 @@
 	 */
 	let { dogName, photos, breeds, picked, max, ontoggle, onclose } = $props();
 
-	/** The dog's own photos stay pinned above the gallery for comparing. */
-	let showDog = $state(true);
+	/**
+	 * The dog's photos show above the gallery while it's scrolled to the top,
+	 * then tuck into the round thumbnail in the bar to give the breeds room.
+	 * Tapping the thumbnail overrides that until the visitor scrolls a bit.
+	 */
+	const TOP_ZONE = 40;
+	const OVERRIDE_DISTANCE = 120;
+	let atTop = $state(true);
+	/** @type {boolean | null} */
+	let forced = $state(null);
+	let forcedAt = 0;
+	const showDog = $derived(forced ?? atTop);
+
+	function toggleDog() {
+		forced = !showDog;
+		forcedAt = scroller?.scrollTop ?? 0;
+	}
+
+	function onscroll() {
+		if (!scroller) return;
+		const y = scroller.scrollTop;
+		atTop = y < TOP_ZONE;
+		if (forced !== null && Math.abs(y - forcedAt) > OVERRIDE_DISTANCE) forced = null;
+	}
 
 	const sections = $derived(groupBreeds(breeds));
 	const pickedKeys = $derived(new Set(picked.map(normalizeName)));
@@ -69,7 +92,7 @@
 				class="dog-toggle"
 				aria-expanded={showDog}
 				aria-label={showDog ? `Hide ${dogName}'s photos` : `Show ${dogName}'s photos`}
-				onclick={() => (showDog = !showDog)}
+				onclick={toggleDog}
 			>
 				<img src={photos[0]} alt="" />
 			</button>
@@ -82,7 +105,7 @@
 	</header>
 
 	{#if showDog && photos.length > 0}
-		<div class="compare" aria-label="Photos of {dogName} to compare">
+		<div class="compare" aria-label="Photos of {dogName} to compare" transition:slide={{ duration: 180 }}>
 			{#each photos as src, i (src)}
 				<figure>
 					<img {src} alt={i === 0 ? `${dogName}` : `${dogName} (photo ${i + 1})`} />
@@ -90,7 +113,8 @@
 				</figure>
 			{/each}
 			<p class="compare-hint">
-				Scroll the breeds below to compare with {dogName}. Tap the round photo up top to hide this.
+				Compare {dogName} with the breeds below. This tucks away as you scroll; tap the round photo up top
+				to bring it back.
 			</p>
 		</div>
 	{/if}
@@ -101,7 +125,7 @@
 		{/each}
 	</nav>
 
-	<div class="scroller" bind:this={scroller}>
+	<div class="scroller" bind:this={scroller} {onscroll}>
 		{#each sections as s (s.id)}
 			<section id={s.id}>
 				<h2 style:--c={s.color}>{s.emoji} {s.label}</h2>

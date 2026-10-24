@@ -162,7 +162,7 @@ The sheet sets the photo order because the server can't reliably list the `stati
 ### Landing
 
 - A hero photo, plus a swipeable strip if there's more than one.
-- "What's in <name>?", the intro text, and "N people have guessed so far."
+- The title "Guess <name>'s mix", the optional `intro` from the sheet, and "N people have guessed so far." (Owner decision, 2026-10-24: no built-in explanatory paragraph.)
 - A big **Make your guess** button.
 
 ### Guess form (mobile-first)

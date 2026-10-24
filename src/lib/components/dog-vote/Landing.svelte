@@ -1,11 +1,8 @@
 <script>
 	import PhotoHero from './PhotoHero.svelte';
-	import { PRONOUNS } from './lookup.js';
 
 	/** @type {{ settings: { dogName: string, pronoun: 'he'|'she'|'they', intro: string, photos: string[] }, count: number, onstart: () => void }} */
 	let { settings, count, onstart } = $props();
-
-	const p = $derived(PRONOUNS[settings.pronoun]);
 </script>
 
 <PhotoHero photos={settings.photos} alt="Photo of {settings.dogName}" />
@@ -13,14 +10,10 @@
 <div class="wrap">
 	<div class="card intro">
 		<p class="kicker">🧬 DNA results are on the way</p>
-		<h1>What's in {settings.dogName}?</h1>
+		<h1>Guess {settings.dogName}'s mix</h1>
 		{#if settings.intro}
 			<p class="blurb own">{settings.intro}</p>
 		{/if}
-		<p class="blurb">
-			Guess {p.poss} breed mix before the test comes back. Once you've guessed, you'll see what
-			everyone else thinks.
-		</p>
 		<button class="btn start" onclick={onstart}>🐾 Make your guess</button>
 		<p class="count">
 			{#if count === 0}

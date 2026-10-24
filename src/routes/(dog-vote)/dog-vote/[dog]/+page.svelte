@@ -23,7 +23,7 @@
 
 	const settings = $derived(data.settings);
 	const lookup = $derived(makeLookup(data.breeds ?? []));
-	const title = $derived(settings ? `What's in ${settings.dogName}?` : 'Guess the breed');
+	const title = $derived(settings ? `Guess ${settings.dogName}'s mix` : 'Guess the breed');
 	const ogImage = $derived(
 		settings?.photos?.[0]
 			? new URL(settings.photos[0], $page.url.origin).href

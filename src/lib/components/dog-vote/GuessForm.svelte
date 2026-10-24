@@ -107,7 +107,7 @@
 		{#if oncancel}
 			<button type="button" class="back" onclick={oncancel}>← Back</button>
 		{/if}
-		<h1>{editing ? 'Edit your guess' : `What's in ${dogName}?`}</h1>
+		<h1>{editing ? 'Edit your guess' : `Guess ${dogName}'s mix`}</h1>
 	</header>
 
 	<form class="card" onsubmit={submit} novalidate>

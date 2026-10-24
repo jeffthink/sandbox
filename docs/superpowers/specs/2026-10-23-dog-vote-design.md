@@ -173,11 +173,12 @@ The sheet sets the photo order because the server can't reliably list the `stati
    - If the search text doesn't match, offer "Add '<text>'" as a free-text breed.
    - Free-text breeds have no group.
    - Duplicates are blocked (case-insensitive).
-3. **Percentages**: each chosen breed gets a slider plus −/+ stepper buttons in steps of 5, with 1 reachable through the slider.
-   - **Auto-balance:** changing one breed spreads the difference across the others proportionally. Each stays at least 1, the total always stays exactly 100, and integers are kept by giving rounding leftovers to the largest.
-   - Adding a breed takes its starting share proportionally from the others. Removing one hands its share back.
-   - A running total ("100% ✓") is always visible.
+3. **Percentages**: each chosen breed gets a slider plus −/+ stepper buttons that change it by 1.
+   - **Even split until you adjust.** Until the visitor moves a slider, breeds split evenly: adding a breed takes its share proportionally from the others, and removing one hands its share back.
+   - **Independent after that.** Once any slider moves, nothing changes on its own. Each value is 1 to (100 − other breeds). A breed added later gets whatever is left (at least 1), and a breed removed later simply leaves a gap.
+   - **Total and submit.** A running total is always visible: "100% ✓", "85% · 15% left" or "110% · 10% over". Submit stays disabled, with the label "Make it add up to 100%", until the total is exactly 100.
    - With one breed it's fixed at 100.
+   - *(Owner decision, 2026-10-24: automatic rebalancing of 3+ breeds was too surprising in testing, because values the visitor had already set kept moving.)*
 4. **Comment**: optional, at most 280 characters, with a character counter.
 5. **Submit**. The server's error messages show next to the fields.
 
@@ -282,4 +283,4 @@ The "unused" rule is my addition. It stops a guess being double-counted when the
 
 ## Left to the builder
 
-Component breakdown, exact palette and fonts, the reveal animation's form, the photo-carousel implementation, the auto-balance algorithm details (within the rules above), and the copy.
+Component breakdown, exact palette and fonts, the reveal animation's form, the photo-carousel implementation, and the copy.

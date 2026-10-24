@@ -1,19 +1,19 @@
 <script>
 	import BreedAvatar from './BreedAvatar.svelte';
+	import { totalStatus } from './balance.js';
 
 	/**
 	 * @type {{
 	 *   picks: Array<{ breed: string, pct: number }>,
-	 *   pinned: Set<string>,
 	 *   lookup: (name: string) => { breed: string, group: string, imageUrl: string },
 	 *   onset: (index: number, value: number) => void,
 	 *   onremove: (index: number) => void
 	 * }}
 	 */
-	let { picks, pinned, lookup, onset, onremove } = $props();
+	let { picks, lookup, onset, onremove } = $props();
 
 	const max = $derived(100 - (picks.length - 1));
-	const total = $derived(picks.reduce((sum, p) => sum + p.pct, 0));
+	const status = $derived(totalStatus(picks.map((p) => p.pct)));
 	const set = onset;
 </script>
 
@@ -23,12 +23,7 @@
 		<li class="row">
 			<div class="top">
 				<BreedAvatar breed={pick.breed} group={info.group} imageUrl={info.imageUrl} size={40} />
-				<span class="name">
-					{pick.breed}
-					{#if picks.length > 1 && pinned.has(pick.breed)}
-						<span class="pin" title="You set this one, so it stays put">📌</span>
-					{/if}
-				</span>
+				<span class="name">{pick.breed}</span>
 				<button type="button" class="remove" aria-label="Remove {pick.breed}" onclick={() => onremove(i)}>✕</button>
 			</div>
 			<div class="controls">
@@ -37,7 +32,7 @@
 					class="step"
 					aria-label="Less {pick.breed}"
 					disabled={picks.length === 1 || pick.pct <= 1}
-					onclick={() => set(i, Math.max(1, Math.ceil(pick.pct / 5) * 5 - 5))}>−</button
+					onclick={() => set(i, pick.pct - 1)}>−</button
 				>
 				<input
 					type="range"
@@ -54,7 +49,7 @@
 					class="step"
 					aria-label="More {pick.breed}"
 					disabled={picks.length === 1 || pick.pct >= max}
-					onclick={() => set(i, Math.floor(pick.pct / 5) * 5 + 5)}>+</button
+					onclick={() => set(i, pick.pct + 1)}>+</button
 				>
 				<output class="pct">{pick.pct}%</output>
 			</div>
@@ -63,9 +58,7 @@
 </ul>
 
 {#if picks.length > 0}
-	<div class="total" class:ok={total === 100} aria-live="polite">
-		{total}% {total === 100 ? '✓' : ''}
-	</div>
+	<div class="total" class:ok={status.ok} aria-live="polite">{status.label}</div>
 {/if}
 
 <style>
@@ -94,11 +87,6 @@
 		flex: 1;
 		font-weight: 700;
 		overflow-wrap: anywhere;
-	}
-
-	.pin {
-		font-size: 0.85rem;
-		margin-left: 0.15rem;
 	}
 
 	.remove {
@@ -196,7 +184,7 @@
 		width: max-content;
 		padding: 0.35rem 1rem;
 		border-radius: 999px;
-		background: var(--ink);
+		background: #b45309;
 		color: #fff;
 		font-weight: 800;
 		box-shadow: var(--shadow);

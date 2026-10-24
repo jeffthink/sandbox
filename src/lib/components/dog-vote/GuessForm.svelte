@@ -1,7 +1,7 @@
 <script>
 	import BreedPicker from './BreedPicker.svelte';
 	import PctEditor from './PctEditor.svelte';
-	import { setPct, addSlot, removeSlot } from './balance.js';
+	import { addSlot, removeSlot, appendRemainder, totalStatus } from './balance.js';
 	import { makeLookup, PRONOUNS } from './lookup.js';
 
 	const MAX_BREEDS = 5;
@@ -29,8 +29,11 @@
 	let name = $state(initial?.name ?? '');
 	let picks = $state(initial ? initial.guesses.map((g) => ({ ...g })) : []);
 	let comment = $state(initial?.comment ?? '');
-	/** Breeds the visitor has set by hand, oldest first; these resist rebalancing. */
-	let touched = $state(/** @type {string[]} */ ([]));
+	/**
+	 * Breeds split evenly until the visitor moves a slider. After that nothing
+	 * moves on its own; they bring the total to 100 themselves.
+	 */
+	let adjusted = $state(false);
 	/** @type {{ name?: string, guesses?: string, comment?: string, form?: string }} */
 	let errors = $state({});
 	let submitting = $state(false);
@@ -38,31 +41,29 @@
 	const possessive = $derived(
 		PRONOUNS[pronoun].poss[0].toUpperCase() + PRONOUNS[pronoun].poss.slice(1)
 	);
-	const pinned = $derived(new Set(touched));
-	/** Row indices of hand-set breeds, oldest first, for the balancer. */
-	const order = $derived(touched.map((b) => picks.findIndex((p) => p.breed === b)).filter((i) => i >= 0));
+	const status = $derived(totalStatus(picks.map((p) => p.pct)));
 
 	const renamed = $derived(editing && name.trim().toLowerCase() !== originalName.trim().toLowerCase());
 
 	/** @param {string} breed */
 	function pick(breed) {
-		const pcts = addSlot(
-			picks.map((p) => p.pct),
-			order
-		);
+		const current = picks.map((p) => p.pct);
+		const pcts = adjusted ? appendRemainder(current) : addSlot(current);
 		picks = [...picks, { breed, pct: 0 }].map((p, i) => ({ ...p, pct: pcts[i] }));
 		errors.guesses = undefined;
 	}
 
 	/** @param {number} index */
 	function remove(index) {
-		const pcts = removeSlot(
-			picks.map((p) => p.pct),
-			index,
-			order
-		);
-		touched = touched.filter((b) => b !== picks[index].breed);
-		picks = picks.filter((_, i) => i !== index).map((p, i) => ({ ...p, pct: pcts[i] }));
+		const rest = picks.filter((_, i) => i !== index);
+		if (rest.length <= 1) adjusted = false; // a lone breed is simply 100%
+		const pcts = adjusted
+			? rest.map((p) => p.pct)
+			: removeSlot(
+					picks.map((p) => p.pct),
+					index
+				);
+		picks = rest.map((p, i) => ({ ...p, pct: rest.length === 1 ? 100 : pcts[i] }));
 	}
 
 	/**
@@ -70,15 +71,10 @@
 	 * @param {number} value
 	 */
 	function setOne(index, value) {
-		const pcts = setPct(
-			picks.map((p) => p.pct),
-			index,
-			value,
-			order
-		);
-		const breed = picks[index].breed;
-		touched = [...touched.filter((b) => b !== breed), breed];
-		picks = picks.map((p, i) => ({ ...p, pct: pcts[i] }));
+		const max = 100 - (picks.length - 1);
+		const pct = Math.min(Math.max(Math.round(value), 1), max);
+		adjusted = true;
+		picks = picks.map((p, i) => (i === index ? { ...p, pct } : p));
 	}
 
 	/** @param {SubmitEvent} e */
@@ -87,6 +83,7 @@
 		errors = {};
 		if (!name.trim()) errors.name = 'Please enter your name.';
 		if (picks.length === 0) errors.guesses = 'Pick at least one breed.';
+		else if (!status.ok) errors.guesses = `Percentages must add up to 100 (now ${status.total}).`;
 		if (Object.keys(errors).length > 0) return;
 
 		submitting = true;
@@ -149,9 +146,10 @@
 			<section>
 				<span class="label">How much of each?</span>
 				<p class="hint">
-					Breeds you set stay put 📌 and the others adjust, so it always adds to 100%.
+					Set each one with the slider or −/+. Nothing moves on its own, so make them add up
+					to 100%.
 				</p>
-				<PctEditor {picks} {pinned} {lookup} onset={setOne} onremove={remove} />
+				<PctEditor {picks} {lookup} onset={setOne} onremove={remove} />
 			</section>
 		{/if}
 		{#if errors.guesses}<p class="error">{errors.guesses}</p>{/if}
@@ -174,8 +172,14 @@
 
 		{#if errors.form}<p class="error form-error" role="alert">{errors.form}</p>{/if}
 
-		<button class="btn submit" type="submit" disabled={submitting}>
-			{submitting ? 'Saving…' : editing ? 'Save my new guess' : 'Submit my guess'}
+		<button class="btn submit" type="submit" disabled={submitting || (picks.length > 0 && !status.ok)}>
+			{#if submitting}
+				Saving…
+			{:else if picks.length > 0 && !status.ok}
+				Make it add up to 100% ({status.total}% now)
+			{:else}
+				{editing ? 'Save my new guess' : 'Submit my guess'}
+			{/if}
 		</button>
 	</form>
 </div>

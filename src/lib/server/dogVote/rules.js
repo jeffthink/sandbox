@@ -4,7 +4,7 @@ export { normalizeName, normalizeGroup };
 
 /** @typedef {{ breed: string, pct: number }} Guess */
 /** @typedef {{ name: string, guesses: Guess[], comment: string, timestamp: string }} Vote */
-/** @typedef {{ breed: string, group: string, imageUrl: string }} Breed */
+/** @typedef {{ breed: string, group: string, imageUrl: string, credit?: string, creditUrl?: string }} Breed */
 /** @typedef {{ dogName: string, pronoun: 'he'|'she'|'they', intro: string, photos: string[] }} Settings */
 /** @typedef {{ name: string, pct: number }} ResultRow */
 /** @typedef {{ revealed: boolean, rows: ResultRow[] }} Results */

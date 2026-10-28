@@ -10,7 +10,7 @@
 	 * @type {{
 	 *   dogName: string,
 	 *   photos: string[],
-	 *   breeds: Array<{ breed: string, group: string, imageUrl: string }>,
+	 *   breeds: Array<{ breed: string, group: string, imageUrl: string, credit?: string, creditUrl?: string }>,
 	 *   picked: string[],
 	 *   max: number,
 	 *   ontoggle: (breed: string) => void,
@@ -45,6 +45,9 @@
 	}
 
 	const sections = $derived(groupBreeds(breeds));
+	const credits = $derived(
+		breeds.filter((b) => b.imageUrl && b.credit).sort((a, b) => a.breed.localeCompare(b.breed))
+	);
 	const pickedKeys = $derived(new Set(picked.map(normalizeName)));
 	const full = $derived(picked.length >= max);
 
@@ -157,6 +160,24 @@
 				</ul>
 			</section>
 		{/each}
+
+		{#if credits.length > 0}
+			<footer class="credits">
+				<h2>Photo credits</h2>
+				<ul>
+					{#each credits as b (b.breed)}
+						<li>
+							<span class="credit-breed">{b.breed}:</span>
+							{#if b.creditUrl}
+								<a href={b.creditUrl} target="_blank" rel="noopener noreferrer">{b.credit}</a>
+							{:else}
+								{b.credit}
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</footer>
+		{/if}
 	</div>
 </div>
 
@@ -398,6 +419,41 @@
 	}
 
 	.selected .name {
+		color: var(--accent-dark);
+	}
+
+	.credits {
+		max-width: 720px;
+		margin: 1.5rem auto 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--accent-soft);
+		color: var(--ink-muted);
+		font-size: 0.85rem;
+	}
+
+	.credits h2 {
+		margin: 0 0 0.5rem;
+		font-size: 0.95rem;
+		color: var(--ink-soft);
+	}
+
+	.credits ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 0.3rem;
+	}
+
+	.credits li {
+		overflow-wrap: anywhere;
+	}
+
+	.credit-breed {
+		font-weight: 700;
+	}
+
+	.credits a {
 		color: var(--accent-dark);
 	}
 </style>

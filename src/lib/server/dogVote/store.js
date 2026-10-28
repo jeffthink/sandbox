@@ -9,7 +9,7 @@ import { parseVoteRows, latestVotesByName, normalizeName } from './rules.js';
 /** @typedef {import('./rules.js').Results} Results */
 
 const CACHE_TTL_MS = 15_000;
-const RANGES = ['settings!A:B', 'votes!A:D', 'breeds!A:C', 'results!A1:B200'];
+const RANGES = ['settings!A:B', 'votes!A:D', 'breeds!A:E', 'results!A1:B200'];
 const VOTE_HEADERS = ['timestamp', 'name', 'guesses', 'comment'];
 const PRONOUNS = new Set(['he', 'she', 'they']);
 
@@ -54,15 +54,24 @@ export function parseBreeds(rows) {
 	const breedCol = header.indexOf('breed');
 	const groupCol = header.indexOf('group');
 	const imageCol = header.indexOf('image_url');
+	const creditCol = header.indexOf('image_credit');
+	const creditUrlCol = header.indexOf('image_credit_url');
 	if (breedCol < 0 || groupCol < 0) {
-		throw new SetupError('Tab `breeds` needs headers: breed, group, image_url (optional).');
+		throw new SetupError(
+			'Tab `breeds` needs headers: breed, group, plus optional image_url, image_credit, image_credit_url.'
+		);
 	}
+	/** @param {string[]} row @param {number} col */
+	const optional = (row, col) => (col >= 0 ? cellText(row[col]) : '');
 	return rows
 		.slice(1)
 		.map((row) => ({
 			breed: cellText(row[breedCol]),
 			group: cellText(row[groupCol]),
-			imageUrl: imageCol >= 0 ? cellText(row[imageCol]) : ''
+			imageUrl: optional(row, imageCol),
+			// Photo attribution for licenses that require it (e.g. CC BY).
+			credit: optional(row, creditCol),
+			creditUrl: /^https:\/\//.test(optional(row, creditUrlCol)) ? optional(row, creditUrlCol) : ''
 		}))
 		.filter((b) => b.breed);
 }

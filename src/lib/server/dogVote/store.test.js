@@ -97,7 +97,19 @@ describe('parseBreeds', () => {
 				['Terrier group', 'Rat Terrier'],
 				['Hound', '']
 			])
-		).toEqual([{ breed: 'Rat Terrier', group: 'Terrier group', imageUrl: '' }]);
+		).toEqual([{ breed: 'Rat Terrier', group: 'Terrier group', imageUrl: '', credit: '', creditUrl: '' }]);
+	});
+	it('reads optional photo credits, keeping only https credit links', () => {
+		expect(
+			parseBreeds([
+				['breed', 'group', 'image_url', 'image_credit', 'image_credit_url'],
+				['Pug', 'Companion group', 'https://x/pug.jpg', 'Pat Doe · CC BY 2.0', 'https://x/pug-page'],
+				['Akita', 'Asian and Oceanian group', 'https://x/akita.jpg', 'Lee Roe', 'javascript:alert(1)']
+			])
+		).toEqual([
+			{ breed: 'Pug', group: 'Companion group', imageUrl: 'https://x/pug.jpg', credit: 'Pat Doe · CC BY 2.0', creditUrl: 'https://x/pug-page' },
+			{ breed: 'Akita', group: 'Asian and Oceanian group', imageUrl: 'https://x/akita.jpg', credit: 'Lee Roe', creditUrl: '' }
+		]);
 	});
 	it('requires the breed and group headers', () => {
 		expect(() => parseBreeds([['name', 'kind']])).toThrow(/breeds/);

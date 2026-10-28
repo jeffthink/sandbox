@@ -4,6 +4,7 @@
 	import { groupStyle } from './groups.js';
 	import { fitLabel } from './fitLabel.js';
 	import { revealSchedule } from './revealSchedule.js';
+	import BreedSheet from './BreedSheet.svelte';
 
 	const ROW = 54;
 	const BAR = 18;
@@ -25,6 +26,9 @@
 
 	// Largest at the top, revealed top-down like a countdown.
 	const sorted = $derived([...rows].sort((a, b) => b.pct - a.pct));
+
+	/** Result row whose bigger photo is showing, if any. */
+	let open = $state('');
 
 	/** Announcer line above the chart: "In first place…" then the breed's name. */
 	let lead = $state('');
@@ -95,18 +99,32 @@
 			});
 		}
 
-		// Rows keep their place while hidden so the chart doesn't jump as they arrive.
+		// Rows keep their place while hidden so the chart doesn't jump as they
+		// arrive, and only become tappable (for a bigger photo) once shown.
 		const g = root
 			.selectAll('g.row')
 			.data(data)
 			.join('g')
 			.attr('class', 'row')
 			.attr('transform', (_, i) => `translate(0, ${i * ROW})`)
-			.attr('opacity', reduce ? 1 : 0);
+			.attr('role', 'button')
+			.attr('aria-label', (d) => `${d.name} ${d.pct}%, show photo`)
+			.attr('tabindex', reduce ? 0 : -1)
+			.style('pointer-events', reduce ? null : 'none')
+			.attr('opacity', reduce ? 1 : 0)
+			.on('click', (_, d) => (open = d.name))
+			.on('keydown', (/** @type {KeyboardEvent} */ e, d) => {
+				if (e.key !== 'Enter' && e.key !== ' ') return;
+				e.preventDefault();
+				open = d.name;
+			});
 		g.transition()
 			.delay((_, i) => delay(i))
 			.duration(reduce ? 0 : FADE)
-			.attr('opacity', 1);
+			.attr('opacity', 1)
+			.on('start', function () {
+				d3.select(this).attr('tabindex', 0).style('pointer-events', null);
+			});
 
 		g.append('title').text((d) => `${d.name}: ${d.pct}%`);
 		g.append('rect').attr('class', 'track').attr('y', 26).attr('height', BAR).attr('rx', 4).attr('width', w - VALUE_W);
@@ -160,10 +178,15 @@
 		{#key lead}<span class="lead">{lead}</span>{/key}
 		{#key called}{#if called}<strong class="called">{called}!</strong>{/if}{/key}
 	</p>
-	<svg bind:this={svg} role="img" aria-label="Actual DNA breakdown">
+	<svg bind:this={svg} role="group" aria-label="Actual DNA breakdown">
 		<desc>{sorted.map((d) => `${d.name} ${d.pct}%`).join(', ')}</desc>
 	</svg>
+	<p class="tap-hint">Tap a breed for a bigger photo.</p>
 </div>
+
+{#if open}
+	<BreedSheet name={open} info={lookup(open)} onclose={() => (open = '')} />
+{/if}
 
 <style>
 	.chart {
@@ -235,5 +258,25 @@
 
 	.chart :global(.track) {
 		fill: #f6ebdf;
+	}
+
+	.chart :global(g.row) {
+		cursor: pointer;
+		outline: none;
+	}
+
+	.chart :global(g.row:hover .track),
+	.chart :global(g.row:focus-visible .track) {
+		fill: var(--accent-soft);
+	}
+
+	.chart :global(g.row:focus-visible .label) {
+		text-decoration: underline;
+	}
+
+	.tap-hint {
+		margin: 0.5rem 0 0;
+		color: var(--ink-muted);
+		font-size: 0.85rem;
 	}
 </style>

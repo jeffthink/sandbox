@@ -3,12 +3,12 @@
 	import { onMount } from 'svelte';
 	import { groupStyle } from './groups.js';
 	import { fitLabel } from './fitLabel.js';
+	import { revealSchedule } from './revealSchedule.js';
 
 	const ROW = 54;
 	const BAR = 18;
 	const VALUE_W = 64;
-	const STAGGER = 600;
-	const GROW = 900;
+	const FADE = 250;
 
 	/**
 	 * @type {{
@@ -23,13 +23,26 @@
 	let svg = $state();
 	let width = $state(320);
 
-	// Largest at the top; animate smallest first so the biggest lands last.
+	// Largest at the top, revealed top-down like a countdown.
 	const sorted = $derived([...rows].sort((a, b) => b.pct - a.pct));
+
+	/** Announcer line above the chart: "In first place…" then the breed's name. */
+	let lead = $state('');
+	let called = $state('');
+	/** @type {ReturnType<typeof setTimeout>[]} */
+	let timers = [];
+	const clearTimers = () => {
+		timers.forEach(clearTimeout);
+		timers = [];
+	};
 
 	onMount(() => {
 		const ro = new ResizeObserver(([entry]) => (width = Math.max(240, entry.contentRect.width)));
 		if (svg?.parentElement) ro.observe(svg.parentElement);
-		return () => ro.disconnect();
+		return () => {
+			ro.disconnect();
+			clearTimers();
+		};
 	});
 
 	$effect(() => {
@@ -59,16 +72,41 @@
 		root.selectAll('*').interrupt();
 		root.selectAll('g.row').remove();
 
-		const n = data.length;
-		const delay = (/** @type {number} */ i) => (reduce ? 0 : (n - 1 - i) * STAGGER);
-		const duration = reduce ? 0 : GROW;
+		const { steps, end } = revealSchedule(data.length, { reduce });
+		const delay = (/** @type {number} */ i) => steps[i].barAt;
+		const duration = (/** @type {number} */ i) => steps[i].grow;
 
+		const DONE = '🎉 That’s the whole mix!';
+		clearTimers();
+		lead = reduce ? DONE : '';
+		called = '';
+		if (!reduce) {
+			const later = (/** @type {number} */ ms, /** @type {() => void} */ fn) => timers.push(setTimeout(fn, ms));
+			steps.forEach((step, i) => {
+				later(step.captionAt, () => {
+					lead = step.lead ?? '';
+					called = '';
+				});
+				if (step.announce) later(step.barAt, () => (called = `${colorFor(data[i].name).emoji} ${data[i].name}`));
+			});
+			later(end, () => {
+				lead = DONE;
+				called = '';
+			});
+		}
+
+		// Rows keep their place while hidden so the chart doesn't jump as they arrive.
 		const g = root
 			.selectAll('g.row')
 			.data(data)
 			.join('g')
 			.attr('class', 'row')
-			.attr('transform', (_, i) => `translate(0, ${i * ROW})`);
+			.attr('transform', (_, i) => `translate(0, ${i * ROW})`)
+			.attr('opacity', reduce ? 1 : 0);
+		g.transition()
+			.delay((_, i) => delay(i))
+			.duration(reduce ? 0 : FADE)
+			.attr('opacity', 1);
 
 		g.append('title').text((d) => `${d.name}: ${d.pct}%`);
 		g.append('rect').attr('class', 'track').attr('y', 26).attr('height', BAR).attr('rx', 4).attr('width', w - VALUE_W);
@@ -81,12 +119,7 @@
 					this.textContent = t;
 					return this.getComputedTextLength();
 				});
-			})
-			.attr('opacity', reduce ? 1 : 0)
-			.transition()
-			.delay((_, i) => delay(i))
-			.duration(reduce ? 0 : 250)
-			.attr('opacity', 1);
+			});
 
 		g.append('rect')
 			.attr('class', 'bar')
@@ -97,7 +130,7 @@
 			.attr('width', reduce ? (d) => Math.max(4, x(d.pct)) : 0)
 			.transition()
 			.delay((_, i) => delay(i))
-			.duration(duration)
+			.duration((_, i) => duration(i))
 			.ease(d3.easeCubicOut)
 			.attr('width', (d) => Math.max(4, x(d.pct)));
 
@@ -111,7 +144,7 @@
 			.text((d) => fmt(reduce ? d.pct : 0, d.pct))
 			.transition()
 			.delay((_, i) => delay(i))
-			.duration(duration)
+			.duration((_, i) => duration(i))
 			.ease(d3.easeCubicOut)
 			.tween('text', function (d) {
 				const interp = d3.interpolateNumber(0, d.pct);
@@ -123,6 +156,10 @@
 </script>
 
 <div class="chart">
+	<p class="announce" aria-live="polite">
+		{#key lead}<span class="lead">{lead}</span>{/key}
+		{#key called}{#if called}<strong class="called">{called}!</strong>{/if}{/key}
+	</p>
 	<svg bind:this={svg} role="img" aria-label="Actual DNA breakdown">
 		<desc>{sorted.map((d) => `${d.name} ${d.pct}%`).join(', ')}</desc>
 	</svg>
@@ -132,6 +169,48 @@
 	.chart {
 		width: 100%;
 		min-width: 0;
+	}
+
+	/* Fixed height so the chart below doesn't shift as lines change. */
+	.announce {
+		min-height: 3.6rem;
+		margin: 0 0 0.75rem;
+		display: grid;
+		align-content: center;
+		justify-items: center;
+		text-align: center;
+	}
+
+	.lead {
+		color: var(--accent-dark);
+		font-weight: 800;
+		font-size: 1.05rem;
+		animation: pop 300ms ease-out;
+	}
+
+	.called {
+		font-family: var(--font-display);
+		font-size: 1.35rem;
+		color: var(--ink);
+		animation: pop 300ms ease-out;
+	}
+
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: translateY(4px) scale(0.96);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lead,
+		.called {
+			animation: none;
+		}
 	}
 
 	svg {
